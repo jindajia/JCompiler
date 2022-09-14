@@ -209,6 +209,42 @@ class LexerTest {
 		String expectedText = "\" ...  \\\"  \\\'  \\\\  \""; //almost the same as input, but white space is omitted
 		assertEquals(expectedText,text);		
 	}
+
+
+	public void demotest() throws LexicalException {
+		String input = """
+			
+			a123 456b
+			""";
+		// show(input);
+		// Lexer lexer = (Lexer) getLexer(input);
+		for (char c:input.toCharArray()) {
+			switch (c){
+				case '\r':
+					System.out.println("\\r");
+					break;
+				case '\n':
+					System.out.println("\\n");
+					break;
+				case '\t':
+					System.out.println("\\t");
+					break;
+				case ' ':
+					System.out.println("space");
+					break;
+				default:
+					System.out.println(c);
+			}
+			// System.out.println(c);
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+        LexerTest lextest = new LexerTest();
+		lextest.show("Start");
+		lextest.demotest();
+        lextest.show("Finish");
+    }
 }
 
 
