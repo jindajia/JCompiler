@@ -38,6 +38,7 @@ public interface IToken {
 	    	LE,     // <=
 	    	GT,     // >
 	    	GE,     // >=
+			COMMENT,
 	    	KW_CONST,
 	    	KW_VAR,
 	    	KW_PROCEDURE,

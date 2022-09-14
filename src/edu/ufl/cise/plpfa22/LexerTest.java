@@ -14,6 +14,9 @@ import edu.ufl.cise.plpfa22.CompilerComponentFactory;
 import edu.ufl.cise.plpfa22.ILexer;
 import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.Kind;
+import edu.ufl.cise.plpfa22.Token;
+import edu.ufl.cise.plpfa22.*;
+import edu.ufl.cise.plpfa22.Lexer;
 import edu.ufl.cise.plpfa22.LexicalException;
 
 class LexerTest {
@@ -212,10 +215,7 @@ class LexerTest {
 
 
 	public void demotest() throws LexicalException {
-		String input = """
-
-			a123 456b
-			""";
+		String input = "\"\\b \\t \\n \\f \\r \"";
 		// show(input);
 		// Lexer lexer = (Lexer) getLexer(input);
 		for (char c:input.toCharArray()) {
@@ -241,9 +241,11 @@ class LexerTest {
 
 	public static void main(String[] args) throws Exception {
         LexerTest lextest = new LexerTest();
+		// lextest.demotest();
 		lextest.show("Start");
-		lextest.show(Lexer.isReserved("TRuE"));
+		lextest.testComment0();
         lextest.show("Finish");
+		// System.out.println('\"');
     }
 }
 

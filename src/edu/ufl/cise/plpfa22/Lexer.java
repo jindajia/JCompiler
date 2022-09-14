@@ -9,7 +9,7 @@ import java.util.*;
 public class Lexer implements ILexer{
     private static ArrayList<String> KWLIST = new ArrayList<>(Arrays.asList("CONST", "VAR", "PROCEDURE", "CALL", "BEGIN", "END", "IF", "THEN", "WHILE", "DO"));
     private static ArrayList<String> BOOLLIST = new ArrayList<>(Arrays.asList("TRUE", "FALSE"));
-    private static enum State {START, IN_IDENT, HAVE_ZERO, HAVE_DOT, IN_FLOAT, IN_NUM, HAVE_EQ, HAVE_MINUS};
+    private static enum State {START, IN_IDENT, IN_STRING, IN_STRING_HAVE_BS, IN_NUM, HAVE_CN, HAVE_LT, HAVE_GT, HAVE_DIV, IN_COMMENT, IN_COMMENT_HAVE_BS};
     final StringBuilder INPUT;
 
     int current_pos;
@@ -31,18 +31,7 @@ public class Lexer implements ILexer{
         this.start_col = current_col;
         this.start_row = current_row;
     }
-    public boolean isFinalState() {
-        switch (this.state){
-            case IN_IDENT:
-            case HAVE_ZERO:
-            case IN_FLOAT:
-            case IN_NUM:
-            case HAVE_MINUS:
-                return true;
-            default:
-                return false;
-        }
-    }
+
     public void setStateToStart() {
         start_pos = current_pos;
         start_row = current_row;
@@ -91,38 +80,52 @@ public class Lexer implements ILexer{
             throw new LexicalException("reserved Kind parse error: " + str);
         }
     }
-    public Kind currentKind() throws LexicalException {
+    public Kind currentKind(){
         switch (this.state) {
-            case HAVE_DOT:
-            case HAVE_EQ:
             case START:
-                throw new LexicalException("error token detected", start_row, start_col);
-            case HAVE_MINUS:
-                return Kind.MINUS;
-            case HAVE_ZERO:
-            case IN_FLOAT:
+                return Kind.ERROR;
             case IN_NUM:
                 return Kind.NUM_LIT;
             case IN_IDENT:
                 if (isReserved(currentTokenString())) {
-                    return reservedKind(currentTokenString());
+                    try {
+                        return reservedKind(currentTokenString());
+                    } catch (LexicalException e) {
+                        e.printStackTrace();
+                        return Kind.ERROR;
+                    }
                 } else {
                     return Kind.IDENT;
                 }
+            case HAVE_CN:
+                return Kind.ERROR;
+            case HAVE_DIV:
+                return Kind.DIV;  
+            case HAVE_GT:
+                return Kind.GT;
+            case HAVE_LT:
+                return Kind.LT;
+            case IN_STRING:
+                return Kind.ERROR;
+            case IN_COMMENT:
+                return Kind.ERROR;
+            case IN_COMMENT_HAVE_BS:
+                return Kind.ERROR;
+            case IN_STRING_HAVE_BS:
+                return Kind.ERROR;
             default:
-                throw new LexicalException("error token detected", start_row, start_col);
+                return Kind.ERROR;
+
         }
     }
     public IToken currentToken() throws LexicalException{
-        if (isFinalState()) {
-            Kind kind = currentKind();
-            Token t = new Token(this.INPUT.substring(start_pos, current_pos), kind, new SourceLocation(start_row, start_col));
-            return t;
-        } else if (state==State.START && current_pos>=this.INPUT.length()) {
+        if (state==State.START && current_pos>=this.INPUT.length()) {
             Token t = new Token("", Kind.EOF, new SourceLocation(start_row, start_col));
             return t;
         } else {
-            return new Token("", Kind.ERROR, new SourceLocation(start_row, start_col));
+            Kind kind = currentKind();
+            Token t = new Token(this.INPUT.substring(start_pos, current_pos), kind, new SourceLocation(start_row, start_col));
+            return t;
         }
     }
     public void nextLine() throws LexicalException {
@@ -134,27 +137,259 @@ public class Lexer implements ILexer{
         current_pos++;
         current_col++;
     }
+    public static boolean isDigit(char c) {
+        if(c>='0' && c<='9') {
+            return true;
+        }
+        return false;
+    }
+    public static boolean isIdent_Start (char c) {
+        if (c>='A' && c<='Z') {
+            return true;
+        } else if (c>='a' && c<='z') {
+            return true;
+        } else if (c=='$' || c=='_') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public static boolean isIdent_Part (char c) {
+        if (isDigit(c) || isIdent_Start(c)) {
+            return true;
+        } return false;
+    }
+    public boolean canAddToCurrentToken(char c) {
+        switch (this.state) {
+            case HAVE_CN,HAVE_GT,HAVE_LT:
+                if (c=='=') {
+                    return true;
+                } return false;
+            case IN_STRING: 
+                return true;
+            case IN_STRING_HAVE_BS:
+                if (Arrays.asList('b','t','n','f','r','\"','\'','\\').contains(c)) {
+                    return true;
+                } return false;
+            case HAVE_DIV:
+                if (c=='/') {
+                    return true;
+                } return false;
+            case IN_IDENT:
+                if (Character.isJavaIdentifierPart(c)) {
+                    return true;
+                } return false;
+            case START:
+                if (c==':' || c=='<' || c=='>' || c=='"'|| c=='/' ) {
+                    return true;
+                } return false;
+            case IN_COMMENT:
+                return true;
+            case IN_COMMENT_HAVE_BS:
+                return true;
+            case IN_NUM:
+                if (Character.isDigit(c)) {
+                    return true;
+                } return false;
+            default:
+                return false;
+
+        }
+    }
+    // return Token if after adding char is a final state, otherwise return null
+    public Token generateFinalToken(char c) throws LexicalException{
+        switch (this.state) {
+            case START:
+                switch (c) {
+                    case '.':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.DOT, new SourceLocation(start_row, start_col));
+                    case ';':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.SEMI, new SourceLocation(start_row, start_col));
+                    case ',':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.COMMA, new SourceLocation(start_row, start_col));
+                    case '(':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.LPAREN, new SourceLocation(start_row, start_col));
+                    case ')':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.RPAREN, new SourceLocation(start_row, start_col));
+                    case '+':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.PLUS, new SourceLocation(start_row, start_col));
+                    case '-':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.MINUS, new SourceLocation(start_row, start_col));
+                    case '*':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.TIMES, new SourceLocation(start_row, start_col));
+                    case '%':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.MOD, new SourceLocation(start_row, start_col));
+                    case '?':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.QUESTION, new SourceLocation(start_row, start_col));
+                    case '!':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.BANG, new SourceLocation(start_row, start_col));
+                    case '#':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.NEQ, new SourceLocation(start_row, start_col));
+                    case '"':
+                        return null;
+                    case '/':
+                        return null;
+                    case ':':
+                        return null;
+                    case '>':
+                        return null;
+                    case '<':
+                        return null;
+                    default:
+                        if (Character.isDigit(c)) {
+                            return null;
+                        } else if (Character.isJavaIdentifierStart(c)) {
+                            return null;
+                        } else {
+                            throw new LexicalException("unrecognized character", current_row, current_col);
+                        }
+                }
+            case HAVE_CN:
+                if (c == '=') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.ASSIGN, new SourceLocation(start_row, start_col));
+                } else {
+                    throw new LexicalException("unrecognized character", current_row, current_col);
+                }
+            case HAVE_GT:
+                if (c == '=') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.GE, new SourceLocation(start_row, start_col));
+                } else {
+                    return null;
+                }
+            case HAVE_LT:
+                if (c == '=') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.LE, new SourceLocation(start_row, start_col));
+                } else {
+                    return null;
+                }
+            case HAVE_DIV:
+                return null;
+            case IN_IDENT:
+                return null;
+            case IN_NUM:
+                return null;
+            case IN_STRING:
+                if (c=='\\') {
+                    return null;
+                } else if (c=='"') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.STRING_LIT, new SourceLocation(start_row, start_col));
+                } else {
+                    return null;
+                }
+            case IN_STRING_HAVE_BS:
+                switch (c) {
+                    case  'b', 't', 'n', 'f', 'r', '"', '\'', '\\':
+                        return null;
+                    default:
+                        throw new LexicalException("unrecognized character", current_row, current_col);
+                }
+            case IN_COMMENT:
+                return null;
+            case IN_COMMENT_HAVE_BS:
+                if (c=='n' || c=='r') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.COMMENT, new SourceLocation(start_row, start_col));
+                } else {
+                    return null;
+                }
+            default:
+                throw new LexicalException("unrecognized state", current_row, current_col);
+
+        }
+    }
+    public void updateState(char c) {
+        switch (this.state) {
+            case HAVE_CN:
+                break;
+            case HAVE_DIV:
+                if (c == '/') {
+                    this.state = State.IN_COMMENT;
+                }
+                break;
+            case HAVE_GT:
+                break;
+            case HAVE_LT:
+                break;
+            case IN_COMMENT:
+                if (c=='\\') {
+                    this.state = State.IN_COMMENT_HAVE_BS;
+                } 
+                break;
+            case IN_COMMENT_HAVE_BS:
+                if (c!='n' && c!='r') {
+                    this.state = State.IN_COMMENT;
+                }
+                break;
+            case IN_IDENT:
+                break;
+            case IN_NUM:
+                break;
+            case IN_STRING:
+                if (c=='\\') {
+                    this.state = State.IN_STRING_HAVE_BS;
+                } else if (c=='"') {
+                    this.state = State.START;
+                }
+                break;
+            case IN_STRING_HAVE_BS:
+                switch (c) {
+                    case  'b', 't', 'n', 'f', 'r', '"', '\'', '\\':
+                        this.state = State.IN_STRING;
+                    default:
+                        break;
+                }
+                break;
+            case START:
+                switch (c){
+                    case '"':
+                        this.state = State.IN_STRING;
+                        break;
+                    case '/':
+                        this.state = State.HAVE_DIV;
+                        break;
+                    case ':':
+                        this.state = State.HAVE_CN;
+                        break;
+                    case '>':
+                        this.state = State.HAVE_GT;
+                        break;
+                    case '<':
+                        this.state = State.HAVE_LT;
+                        break;
+                    default:
+                        if (Character.isDigit(c)) {
+                            this.state = State.IN_NUM;
+                        } else if (Character.isJavaIdentifierStart(c)) {
+                            this.state = State.IN_IDENT;
+                        }
+                        break;
+                    }
+                break;
+            default:
+                break;
+            
+        }
+    }
     @Override
     public IToken next() throws LexicalException {
-        IToken token = null;
         if (current_pos>=this.INPUT.length()) {
             return new Token("", Kind.EOF, new SourceLocation(current_row, current_col));
         }
-        char c = this.INPUT.charAt(current_pos);
-        while(canAddTocurrentToken(c)) {
-            if (c==' '||c=='\t') {
+        IToken token;
+        while (current_pos<this.INPUT.length()) {
+            char c = this.INPUT.charAt(current_pos);
+            token = generateFinalToken(c);
+            if (token != null) {//token final state
                 nextCol();
                 setStateToStart();
-            } else if (c=='\n'||c=='\r') {
-                nextLine();
-                setStateToStart();
-            } else {
+                return token;
+            } else if (canAddToCurrentToken(c)){//token unfinish state
+                updateState(c);
                 nextCol();
+            } else {//token finish state
+                token = currentToken();
+                setStateToStart();
+                return token;
             }
-            if (current_pos>=this.INPUT.length()) {
-                break;
-            }
-            c = this.INPUT.charAt(current_pos);
         }
         token = currentToken();
         setStateToStart();
