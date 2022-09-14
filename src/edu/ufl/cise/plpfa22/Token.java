@@ -8,10 +8,18 @@ public class Token implements IToken{
     final SourceLocation SOURCELOCATION;
     final Kind KIND;
 
-    public Token(String text, Kind kind, SourceLocation sourceLocation) {
+    public Token(String text, Kind kind, SourceLocation sourceLocation) throws LexicalException {
         this.TEXT = text;
         this.KIND = kind;
         this.SOURCELOCATION = sourceLocation;
+
+        if (kind == Kind.NUM_LIT) {
+            try {
+                Integer.parseInt(this.TEXT);
+            } catch (Exception e) {
+                throw new LexicalException(e.getMessage(), sourceLocation);
+            }
+        }
     }
 
     @Override
