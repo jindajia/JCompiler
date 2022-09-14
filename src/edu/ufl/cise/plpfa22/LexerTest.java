@@ -244,6 +244,7 @@ class LexerTest {
 		// lextest.demotest();
 		lextest.show("Start");
 		lextest.testComment0();
+		// System.out.println(Character.isWhitespace('\s'));
         lextest.show("Finish");
 		// System.out.println('\"');
     }

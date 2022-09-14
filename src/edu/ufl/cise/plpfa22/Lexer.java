@@ -180,7 +180,7 @@ public class Lexer implements ILexer{
                     return true;
                 } return false;
             case START:
-                if (c==':' || c=='<' || c=='>' || c=='"'|| c=='/' ) {
+                if (c==':' || c=='<' || c=='>' || c=='"'|| c=='/' || Character.isWhitespace(c)) {
                     return true;
                 } return false;
             case IN_COMMENT:
@@ -236,9 +236,7 @@ public class Lexer implements ILexer{
                     case '<':
                         return null;
                     default:
-                        if (Character.isDigit(c)) {
-                            return null;
-                        } else if (Character.isJavaIdentifierStart(c)) {
+                        if (Character.isDigit(c) || Character.isJavaIdentifierStart(c) || Character.isWhitespace(c)) {
                             return null;
                         } else {
                             throw new LexicalException("unrecognized character", current_row, current_col);
@@ -284,7 +282,11 @@ public class Lexer implements ILexer{
                         throw new LexicalException("unrecognized character", current_row, current_col);
                 }
             case IN_COMMENT:
-                return null;
+                if (c=='\n' || c=='\r') {
+                    return new Token(INPUT.substring(start_pos, current_pos+1), Kind.COMMENT, new SourceLocation(start_row, start_col));
+                } else {
+                    return null;
+                }
             case IN_COMMENT_HAVE_BS:
                 if (c=='n' || c=='r') {
                     return new Token(INPUT.substring(start_pos, current_pos+1), Kind.COMMENT, new SourceLocation(start_row, start_col));
@@ -379,12 +381,28 @@ public class Lexer implements ILexer{
             char c = this.INPUT.charAt(current_pos);
             token = generateFinalToken(c);
             if (token != null) {//token final state
-                nextCol();
+                if (c=='\n' || c=='\r') {
+                    nextLine();
+                } else {
+                    nextCol();
+                }
                 setStateToStart();
-                return token;
+                if (token.getKind() != Kind.COMMENT) {
+                    return token;
+                } else {
+                    token = null;
+                    continue;
+                }
             } else if (canAddToCurrentToken(c)){//token unfinish state
                 updateState(c);
-                nextCol();
+                if (c=='\n' || c=='\r') {
+                    nextLine();
+                } else {
+                    nextCol();
+                }
+                if (this.state == State.START && Character.isWhitespace(c)) {
+                    setStateToStart();
+                }
             } else {//token finish state
                 token = currentToken();
                 setStateToStart();
