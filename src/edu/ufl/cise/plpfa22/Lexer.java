@@ -5,13 +5,12 @@ import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 
 import java.util.ArrayList;
 import java.util.*;
-import org.w3c.dom.Text;
+
 public class Lexer implements ILexer{
     private static ArrayList<String> KWLIST = new ArrayList<>(Arrays.asList("CONST", "VAR", "PROCEDURE", "CALL", "BEGIN", "END", "IF", "THEN", "WHILE", "DO"));
     private static ArrayList<String> BOOLLIST = new ArrayList<>(Arrays.asList("TRUE", "FALSE"));
     private static enum State {START, IN_IDENT, HAVE_ZERO, HAVE_DOT, IN_FLOAT, IN_NUM, HAVE_EQ, HAVE_MINUS};
     final StringBuilder INPUT;
-    private ArrayList<Token> tokenList;
 
     int current_pos;
     int current_row;
@@ -50,11 +49,47 @@ public class Lexer implements ILexer{
         start_col = current_col;
         state = State.START;
     }
+    public String currentTokenString() {
+        return this.INPUT.substring(start_pos, current_pos);
+    }
     public static boolean isReserved(String str) {
         if (KWLIST.contains(str.toUpperCase()) || BOOLLIST.contains(str.toUpperCase())) {
             return true;
         }
         return false;
+    }
+    public static Kind reservedKind(String str) throws LexicalException{
+        if (KWLIST.contains(str.toUpperCase())) {
+            int index = KWLIST.indexOf(str.toUpperCase());
+            switch(index) {
+                case 0:
+                    return Kind.KW_CONST;
+                case 1:
+                    return Kind.KW_VAR;
+                case 2:
+                    return Kind.KW_PROCEDURE;
+                case 3:
+                    return Kind.KW_CALL;
+                case 4:
+                    return Kind.KW_BEGIN;
+                case 5:
+                    return Kind.KW_END;
+                case 6:
+                    return Kind.KW_IF;
+                case 7:
+                    return Kind.KW_THEN;
+                case 8:
+                    return Kind.KW_WHILE;
+                case 9:
+                    return Kind.KW_DO;
+                default:
+                    throw new LexicalException("reserved Kind parse error: " + str);
+            }
+        } else if (BOOLLIST.contains(str.toUpperCase())) {
+            return Kind.BOOLEAN_LIT;
+        } else {
+            throw new LexicalException("reserved Kind parse error: " + str);
+        }
     }
     public Kind currentKind() throws LexicalException {
         switch (this.state) {
@@ -69,49 +104,61 @@ public class Lexer implements ILexer{
             case IN_NUM:
                 return Kind.NUM_LIT;
             case IN_IDENT:
-                break;
+                if (isReserved(currentTokenString())) {
+                    return reservedKind(currentTokenString());
+                } else {
+                    return Kind.IDENT;
+                }
             default:
                 throw new LexicalException("error token detected", start_row, start_col);
         }
-        return null;
     }
-    public void dealWhiteLine() throws LexicalException {
+    public IToken currentToken() throws LexicalException{
         if (isFinalState()) {
             Kind kind = currentKind();
             Token t = new Token(this.INPUT.substring(start_pos, current_pos), kind, new SourceLocation(start_row, start_col));
-        } else if (this.state == State.START) {
-            //do nothing
+            return t;
+        } else if (state==State.START && current_pos>=this.INPUT.length()) {
+            Token t = new Token("", Kind.EOF, new SourceLocation(start_row, start_col));
+            return t;
         } else {
-            throw new LexicalException("error token detected", start_row, start_col);
+            return new Token("", Kind.ERROR, new SourceLocation(start_row, start_col));
         }
+    }
+    public void nextLine() throws LexicalException {
         current_pos++;
         current_row++;
         current_col = 1;
-        setStateToStart();
     }
-    public void dealWhiteSpace() throws LexicalException {
+    public void nextCol() throws LexicalException {
         current_pos++;
         current_col++;
-        setStateToStart();
     }
     @Override
     public IToken next() throws LexicalException {
-        
-        while(current_pos < this.INPUT.length()) {
-            char c = this.INPUT.charAt(current_pos);
-            switch (c){
-                case '\n', '\r':
-                    dealWhiteLine();
-                case ' ','\t':
-                    dealWhiteSpace();
-                // case HAVE_ZERO:
-                // case HAVE_DOT:
-                // case IN_FLOAT:
-                // case IN_NUM:
-            }
+        IToken token = null;
+        if (current_pos>=this.INPUT.length()) {
+            return new Token("", Kind.EOF, new SourceLocation(current_row, current_col));
         }
-
-        return null;
+        char c = this.INPUT.charAt(current_pos);
+        while(canAddTocurrentToken(c)) {
+            if (c==' '||c=='\t') {
+                nextCol();
+                setStateToStart();
+            } else if (c=='\n'||c=='\r') {
+                nextLine();
+                setStateToStart();
+            } else {
+                nextCol();
+            }
+            if (current_pos>=this.INPUT.length()) {
+                break;
+            }
+            c = this.INPUT.charAt(current_pos);
+        }
+        token = currentToken();
+        setStateToStart();
+        return token;
     }
 
     @Override

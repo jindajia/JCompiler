@@ -7,6 +7,7 @@ public class Token implements IToken{
     final String TEXT;
     final SourceLocation SOURCELOCATION;
     final Kind KIND;
+
     public Token(String text, Kind kind, SourceLocation sourceLocation) {
         this.TEXT = text;
         this.KIND = kind;
