@@ -41,7 +41,18 @@ public class Token implements IToken{
 
     @Override
     public String getStringValue() {
-        return this.TEXT;
+        String result = this.TEXT.substring(1,this.TEXT.length()-1);
+        result = result.replace("\\n", "\n");
+        result = result.replace("\\b", "\b");
+        result = result.replace("\\r", "\r");
+        result = result.replace("\\t", "\t");
+        result = result.replace("\\f", "\f");
+        result = result.replace("\\\\", "\\");
+        result = result.replace("\\\"", "\"");
+        result = result.replace("\\\'", "\'");
+
+
+        return result;
     }
     
     public int getLength() {

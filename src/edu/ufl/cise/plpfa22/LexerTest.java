@@ -193,6 +193,8 @@ class LexerTest {
 		IToken t = lexer.next();
 		String val = t.getStringValue();
 		String expectedStringValue = "\b \t \n \f \r ";
+		System.out.println(val);
+		System.out.println(expectedStringValue);
 		assertEquals(expectedStringValue, val);
 		String text = String.valueOf(t.getText());
 		String expectedText = "\"\\b \\t \\n \\f \\r \""; 
@@ -213,6 +215,22 @@ class LexerTest {
 		assertEquals(expectedText,text);		
 	}
 
+	@Test
+	public void testEscapeSequences2() throws LexicalException {
+		String input = "\"abc \"";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String text = String.valueOf(t.getText());
+
+		String expectedStringValue = "abc ";
+		System.out.println(val);
+		System.out.println(expectedStringValue);
+		assertEquals(expectedStringValue, val);
+		String expectedText = "\"abc \""; 
+		assertEquals(expectedText,text);
+	}
 
 	public void demotest() throws LexicalException {
 		String input = "\"\\b \\t \\n \\f \\r \"";
@@ -243,7 +261,16 @@ class LexerTest {
         LexerTest lextest = new LexerTest();
 		// lextest.demotest();
 		lextest.show("Start");
-		lextest.testComment0();
+		// lextest.testSingleChar0();
+		// lextest.testComment0();
+		// lextest.testEmpty();
+		// lextest.testError0();
+		// lextest.testEscapeSequences0();
+		// lextest.testEscapeSequences1();
+		// lextest.testEscapeSequences2();
+		// lextest.testIdenInt();
+		// lextest.testIdent0();
+		lextest.testIntTooBig();
 		// System.out.println(Character.isWhitespace('\s'));
         lextest.show("Finish");
 		// System.out.println('\"');

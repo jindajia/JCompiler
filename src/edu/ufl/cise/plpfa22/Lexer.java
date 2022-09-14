@@ -180,7 +180,7 @@ public class Lexer implements ILexer{
                     return true;
                 } return false;
             case START:
-                if (c==':' || c=='<' || c=='>' || c=='"'|| c=='/' || Character.isWhitespace(c)) {
+                if (c==':' || c=='<' || c=='>' || c=='"'|| c=='/' || Character.isWhitespace(c) || Character.isDigit(c) || Character.isJavaIdentifierStart(c)) {
                     return true;
                 } return false;
             case IN_COMMENT:
