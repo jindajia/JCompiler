@@ -213,7 +213,7 @@ class LexerTest {
 
 	public void demotest() throws LexicalException {
 		String input = """
-			
+
 			a123 456b
 			""";
 		// show(input);
@@ -242,7 +242,7 @@ class LexerTest {
 	public static void main(String[] args) throws Exception {
         LexerTest lextest = new LexerTest();
 		lextest.show("Start");
-		lextest.demotest();
+		lextest.show(Lexer.isReserved("TRuE"));
         lextest.show("Finish");
     }
 }
