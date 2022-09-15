@@ -135,6 +135,9 @@ public class Lexer implements ILexer{
             return t;
         } else {
             Kind kind = currentKind();
+            if (kind==Kind.ERROR) {
+                throw new LexicalException("current Token error ",new SourceLocation(start_row, start_col));
+            }
             Token t = new Token(this.INPUT.substring(start_pos, current_pos), kind, new SourceLocation(start_row, start_col));
             return t;
         }
@@ -217,6 +220,8 @@ public class Lexer implements ILexer{
                         return new Token(INPUT.substring(start_pos, current_pos+1), Kind.NEQ, new SourceLocation(start_row, start_col));
                     case '=':
                         return new Token(INPUT.substring(start_pos, current_pos+1), Kind.EQ, new SourceLocation(start_row, start_col));
+                    case '0':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.NUM_LIT, new SourceLocation(start_row, start_col));
                     case '"':
                         return null;
                     case '/':
