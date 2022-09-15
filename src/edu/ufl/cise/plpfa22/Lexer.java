@@ -215,6 +215,8 @@ public class Lexer implements ILexer{
                         return new Token(INPUT.substring(start_pos, current_pos+1), Kind.BANG, new SourceLocation(start_row, start_col));
                     case '#':
                         return new Token(INPUT.substring(start_pos, current_pos+1), Kind.NEQ, new SourceLocation(start_row, start_col));
+                    case '=':
+                        return new Token(INPUT.substring(start_pos, current_pos+1), Kind.EQ, new SourceLocation(start_row, start_col));
                     case '"':
                         return null;
                     case '/':
