@@ -20,6 +20,17 @@ public class Lexer implements ILexer{
     int start_pos;
     int start_row;
     int start_col;
+
+    //for peek use, save and undo property
+    int current_pos_cp;
+    int current_row_cp;
+    int current_col_cp;
+
+    State state_cp;
+    int start_pos_cp;
+    int start_row_cp;
+    int start_col_cp;
+
     public Lexer(String input) {
         this.INPUT = new StringBuilder(input);
         this.current_pos = 0;
@@ -80,7 +91,7 @@ public class Lexer implements ILexer{
             throw new LexicalException("reserved Kind parse error: " + str);
         }
     }
-    public Kind currentKind(){
+    private Kind currentKind(){
         switch (this.state) {
             case START:
                 return Kind.ERROR;
@@ -118,7 +129,7 @@ public class Lexer implements ILexer{
 
         }
     }
-    public IToken currentToken() throws LexicalException{
+    private IToken currentToken() throws LexicalException{
         if (state==State.START && current_pos>=this.INPUT.length()) {
             Token t = new Token("", Kind.EOF, new SourceLocation(start_row, start_col));
             return t;
@@ -128,38 +139,17 @@ public class Lexer implements ILexer{
             return t;
         }
     }
-    public void nextLine() throws LexicalException {
+    private void nextLine() throws LexicalException {
         current_pos++;
         current_row++;
         current_col = 1;
     }
-    public void nextCol() throws LexicalException {
+    private void nextCol() throws LexicalException {
         current_pos++;
         current_col++;
     }
-    public static boolean isDigit(char c) {
-        if(c>='0' && c<='9') {
-            return true;
-        }
-        return false;
-    }
-    public static boolean isIdent_Start (char c) {
-        if (c>='A' && c<='Z') {
-            return true;
-        } else if (c>='a' && c<='z') {
-            return true;
-        } else if (c=='$' || c=='_') {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    public static boolean isIdent_Part (char c) {
-        if (isDigit(c) || isIdent_Start(c)) {
-            return true;
-        } return false;
-    }
-    public boolean canAddToCurrentToken(char c) {
+
+    private boolean canAddToCurrentToken(char c) {
         switch (this.state) {
             case HAVE_CN,HAVE_GT,HAVE_LT:
                 if (c=='=') {
@@ -197,7 +187,7 @@ public class Lexer implements ILexer{
         }
     }
     // return Token if after adding char is a final state, otherwise return null
-    public Token generateFinalToken(char c) throws LexicalException{
+    private Token generateFinalToken(char c) throws LexicalException{
         switch (this.state) {
             case START:
                 switch (c) {
@@ -298,7 +288,7 @@ public class Lexer implements ILexer{
 
         }
     }
-    public void updateState(char c) {
+    private void updateState(char c) {
         switch (this.state) {
             case HAVE_CN:
                 break;
@@ -414,10 +404,34 @@ public class Lexer implements ILexer{
         return token;
     }
 
+    private void saveState() {
+        current_pos_cp = current_pos;
+        current_row_cp = current_row;
+        current_col_cp = current_col;
+    
+        state_cp = state;
+        start_pos_cp = start_pos;
+        start_row_cp = start_row;
+        start_col_cp = start_col;
+    }
+
+    private void undoState() {
+        current_pos = current_pos_cp;
+        current_row = current_row_cp;
+        current_col = current_col_cp;
+    
+        state = state_cp;
+        start_pos = start_pos_cp;
+        start_row = start_row_cp;
+        start_col = start_col_cp;
+    }
+
     @Override
     public IToken peek() throws LexicalException {
-        
-        return null;
+        saveState();
+        IToken token = next();
+        undoState();
+        return token;
     }
     
 }
