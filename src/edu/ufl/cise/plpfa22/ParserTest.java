@@ -645,5 +645,8 @@ class ParserTest {
 			ASTNode ast = getAST(input);
 		});
 	}
-
+	public static void main(String[] args) throws PLPException{
+		ParserTest parserTest = new ParserTest();
+		parserTest.test0();
+	}
 }

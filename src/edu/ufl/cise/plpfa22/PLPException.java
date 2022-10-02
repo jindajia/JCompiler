@@ -3,7 +3,7 @@
  */
 package edu.ufl.cise.plpfa22;
 
-
+import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 
 @SuppressWarnings("serial")
 public class PLPException extends Exception {
@@ -30,6 +30,10 @@ public class PLPException extends Exception {
 
 	public PLPException(Throwable cause) {
 		super(cause);
+	}
+
+	public PLPException(String error_message, SourceLocation loc) {
+		super(loc.line() + ":" + loc.column() + "  " + error_message);
 	}
 	
 
