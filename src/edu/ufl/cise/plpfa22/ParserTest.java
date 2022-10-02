@@ -650,5 +650,18 @@ class ParserTest {
 		parserTest.test0();
 		parserTest.test1();
 		parserTest.test2();
+		parserTest.test3();
+		parserTest.test4();
+		parserTest.test5();
+		parserTest.test6();
+		parserTest.test7();
+		parserTest.test8();
+		parserTest.test9();
+		parserTest.test10();
+		parserTest.test11();
+		parserTest.test12();
+		parserTest.test13();
+		parserTest.test14();
+		parserTest.test15();
 	}
 }

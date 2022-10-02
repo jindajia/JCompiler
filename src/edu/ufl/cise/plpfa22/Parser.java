@@ -20,6 +20,7 @@ import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Program;
 import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
 import edu.ufl.cise.plpfa22.ast.StatementCall;
 import edu.ufl.cise.plpfa22.ast.StatementEmpty;
@@ -120,14 +121,14 @@ public class Parser implements IParser{
         Expression left = null;
         if (token.getKind() == Kind.IDENT) {
             left = new ExpressionIdent(token);
+            consume();
         } else if (token.getKind() == Kind.LPAREN) {
             consume();
             left = expression();
-            if (token.getKind() == Kind.RPAREN) {
-                consume();
-            } else {
-                throw new SyntaxException("Conldn't find right Parenthesis", token.getSourceLocation());
-            }
+            if (token.getKind() != Kind.RPAREN) {
+                throw new SyntaxException("Couldn't find right Parenthesis", token.getSourceLocation());
+            } 
+            consume();
         } else {
             left = const_val();
         }
@@ -139,13 +140,25 @@ public class Parser implements IParser{
         Statement left = null;
         IToken firsToken = token;
         switch(token.getKind()) {
+            case IDENT: {
+                IToken id = token;
+                Expression expr;
+                consume();
+                if (token.getKind()!=Kind.ASSIGN) {
+                    throw new SyntaxException("Couldn't find := Symbol", token.getSourceLocation());
+                }
+                consume();
+                expr = expression();
+                left = new StatementAssign(firsToken, new Ident(id), expr);
+            }
+                break;
             case QUESTION:
                 consume();
                 if (token.getKind() == Kind.IDENT) {
                     left = new StatementInput(firsToken, new Ident(token));
                     consume();
                 } else {
-                    throw new SyntaxException("StatementQuestion Conldn't find Identifier", token.getSourceLocation());
+                    throw new SyntaxException("StatementQuestion couldn't find Identifier", token.getSourceLocation());
                 }
                 break;
             case BANG:{
@@ -168,7 +181,7 @@ public class Parser implements IParser{
                     statements.add(statement());
                 }
                 if (token.getKind()!=Kind.KW_END) {
-                    throw new SyntaxException("StatementBlock Conldn't find \';\'", token.getSourceLocation()); 
+                    throw new SyntaxException("StatementBlock couldn't find \'End\'", token.getSourceLocation()); 
                 }
                 consume();
                 left = new StatementBlock(firsToken, statements);
@@ -177,7 +190,7 @@ public class Parser implements IParser{
             case KW_CALL:
                 consume();
                 if (token.getKind() != Kind.IDENT) {
-                    throw new SyntaxException("StatementCall Conldn't find Identifier", token.getSourceLocation());
+                    throw new SyntaxException("StatementCall couldn't find Identifier", token.getSourceLocation());
                 }
                 left = new StatementCall(firsToken, new Ident(token));
                 consume();
@@ -188,7 +201,7 @@ public class Parser implements IParser{
                 Statement stmt;
                 expr = expression();
                 if (token.getKind()!=Kind.KW_THEN) {
-                    throw new SyntaxException("StatementIf Conldn't find kew word \"THEN\"", token.getSourceLocation());
+                    throw new SyntaxException("StatementIf couldn't find kew word \"THEN\"", token.getSourceLocation());
                 }
                 consume();
                 stmt = statement();
@@ -201,7 +214,7 @@ public class Parser implements IParser{
                 Statement stmt;
                 expr = expression();
                 if (token.getKind()!=Kind.KW_DO) {
-                    throw new SyntaxException("StatementWhile Conldn't find \"DO\"", token.getSourceLocation());
+                    throw new SyntaxException("StatementWhile couldn't find \"DO\"", token.getSourceLocation());
                 }
                 consume();
                 stmt = statement();
@@ -248,17 +261,16 @@ public class Parser implements IParser{
             }
             ConstDec constDec = new ConstDec(tempToken, id, val);
             cstDecList.add(constDec);
-            consume();
             while(token.getKind() == Kind.COMMA) {
                 tempToken = token;
                 consume();
                 if (token.getKind()!=Kind.IDENT) {
-                    throw new SyntaxException("ConstDec Conldn't find Identifier", token.getSourceLocation());
+                    throw new SyntaxException("ConstDec couldn't find Identifier", token.getSourceLocation());
                 }
                 id = token;
                 consume();
                 if (token.getKind()!=Kind.EQ) {
-                    throw new SyntaxException("ConstDec Conldn't find EQ", token.getSourceLocation());
+                    throw new SyntaxException("ConstDec couldn't find EQ", token.getSourceLocation());
                 }
                 consume();
                 expr = const_val();
@@ -273,55 +285,54 @@ public class Parser implements IParser{
                 }
                 constDec = new ConstDec(tempToken, id, val);
                 cstDecList.add(constDec);
-                consume();
-                if (token.getKind()==Kind.SEMI) {
-                    consume();
-                    break;
-                }
             }
+            if (token.getKind()!=Kind.SEMI) {
+                throw new SyntaxException("ConsDec conldn't find \';\'", token.getSourceLocation());
+            }
+            consume();
         }
 
         while (token.getKind()==Kind.KW_VAR) {
             tempToken = token;
             consume();
             if (token.getKind()!=Kind.IDENT) {
-                throw new SyntaxException("VarDec Conldn't find Identifier", token.getSourceLocation());
+                throw new SyntaxException("VarDec couldn't find Identifier", token.getSourceLocation());
             }
             IToken id = token;
             VarDec varDec = new VarDec(tempToken, id);
             varDecList.add(varDec);
             consume();
-            while (token.getKind()!=Kind.COMMA) {
+            while (token.getKind()==Kind.COMMA) {
                 tempToken = token;
                 consume();
                 if (token.getKind()!=Kind.IDENT) {
-                    throw new SyntaxException("VarDec Conldn't find Identifier", token.getSourceLocation());
+                    throw new SyntaxException("VarDec couldn't find Identifier", token.getSourceLocation());
                 }
                 id = token;
                 varDec = new VarDec(tempToken, id);
                 varDecList.add(varDec);
                 consume();
-                if (token.getKind()==Kind.SEMI) {
-                    consume();
-                    break;
-                }
-            }        
+            }       
+            if (token.getKind()!=Kind.SEMI) {
+                throw new SyntaxException("VarDec couldn't find \';\'", token.getSourceLocation());
+            }
+            consume();
         }
 
         while (token.getKind()==Kind.KW_PROCEDURE) {
             tempToken = token;
             consume();
             if (token.getKind()!=Kind.IDENT) {
-                throw new SyntaxException("ProcedureDec Conldn't find Identifier", token.getSourceLocation());
+                throw new SyntaxException("ProcedureDec couldn't find Identifier", token.getSourceLocation());
             }
             IToken id = token;
             consume();
             if (token.getKind()!=Kind.SEMI) {
-                throw new SyntaxException("ProcedureDec Conldn't find \";\"", token.getSourceLocation());
+                throw new SyntaxException("ProcedureDec couldn't find \";\"", token.getSourceLocation());
             }
             Block block = block();
             if (token.getKind()!=Kind.SEMI) {
-                throw new SyntaxException("ProcedureDec Conldn't find \";\"", token.getSourceLocation());
+                throw new SyntaxException("ProcedureDec couldn't find \";\"", token.getSourceLocation());
             }
             ProcDec procDec = new ProcDec(tempToken, id, block);
             proDecList.add(procDec);
