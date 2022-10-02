@@ -1,17 +1,30 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+
+import com.vladsch.flexmark.util.dependency.FirstDependent;
 
 import au.com.dius.pact.core.support.json.JsonToken.Null;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
+import edu.ufl.cise.plpfa22.ast.Block;
+import edu.ufl.cise.plpfa22.ast.ConstDec;
 import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
+import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.ProcDec;
+import edu.ufl.cise.plpfa22.ast.Program;
 import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementCall;
+import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementInput;
+import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.VarDec;
 
 public class Parser implements IParser{
     final Lexer lexer;
@@ -23,8 +36,8 @@ public class Parser implements IParser{
     @Override
     public ASTNode parse() throws PLPException {
         consume();
-        // TODO return program();
-        return null;
+        return program();
+        // return null;
     }
     
     private IToken consume() {
@@ -37,7 +50,7 @@ public class Parser implements IParser{
         return token;
     }
 
-    private Expression const_val() throws Exception{
+    private Expression const_val() throws PLPException{
         Expression node = null;
         switch(token.getKind()){
             case BOOLEAN_LIT:
@@ -58,7 +71,7 @@ public class Parser implements IParser{
         return node;
     }
 
-    private Expression expression() throws Exception {
+    private Expression expression() throws PLPException {
         IToken firsToken = token;
         Expression left = null;
         Expression right = null;
@@ -72,7 +85,7 @@ public class Parser implements IParser{
         return left;
     }
 
-    private Expression additive_expression() throws Exception {
+    private Expression additive_expression() throws PLPException {
         IToken firsToken = token;
         Expression left = null;
         Expression right = null;
@@ -86,7 +99,7 @@ public class Parser implements IParser{
         return left;
     }
 
-    private Expression multiplicative_expression() throws Exception {
+    private Expression multiplicative_expression() throws PLPException {
         IToken firsToken = token;
         Expression left = null;
         Expression right = null;
@@ -100,7 +113,7 @@ public class Parser implements IParser{
         return left;
     }
 
-    private Expression primary_expression() throws Exception {
+    private Expression primary_expression() throws PLPException {
         Expression left = null;
         if (token.getKind() == Kind.IDENT) {
             left = new ExpressionIdent(token);
@@ -119,7 +132,174 @@ public class Parser implements IParser{
     }
 
 
-    private Statement statement() throws Exception {
-        return null;
+    private Statement statement() throws PLPException {
+        Statement left = null;
+        IToken firsToken = token;
+        switch(token.getKind()) {
+            case QUESTION:
+                consume();
+                if (token.getKind() == Kind.IDENT) {
+                    left = new StatementInput(firsToken, new Ident(token));
+                    consume();
+                } else {
+                    throw new SyntaxException("StatementQuestion Conldn't find Identifier", token.getSourceLocation());
+                }
+                break;
+            case BANG:
+                consume();
+                Expression expr = expression();
+                left = new StatementOutput(firsToken, expr);
+                consume();
+                break;
+            case EOF:
+                left = new StatementEmpty(firsToken);
+                break;
+            case KW_BEGIN:
+                break;
+            case KW_CALL:
+                consume();
+                if (token.getKind() == Kind.IDENT) {
+                    left = new StatementCall(firsToken, new Ident(token));
+                    consume();
+                } else {
+                    throw new SyntaxException("StatementCall Conldn't find Identifier", token.getSourceLocation());
+                }
+                break;
+            case KW_IF:
+                break;
+            case KW_WHILE:
+                break;
+            default:
+                break;
+        
+        }
+        return left;
+    }
+
+    private Block block() throws PLPException {
+        Block left;
+        IToken tempToken;
+        IToken firstToken = token;
+        ArrayList<ConstDec> cstDecList = new ArrayList<>();
+        ArrayList<VarDec> varDecList = new ArrayList<>();
+        ArrayList<ProcDec> proDecList = new ArrayList<>();
+        while(token.getKind()==Kind.KW_CONST) {
+            tempToken = token;
+            consume();
+            if (token.getKind()!=Kind.IDENT) {
+                throw new SyntaxException("ConstDec Conldn't find Identifier", token.getSourceLocation());
+            }
+            IToken id = token;
+            consume();
+            if (token.getKind()!=Kind.EQ) {
+                throw new SyntaxException("ConstDec Conldn't find EQ", token.getSourceLocation());
+            }
+            consume();
+            Expression expr = const_val();
+            Object val;
+            if (expr instanceof ExpressionNumLit) {
+                val = expr.firstToken.getIntValue();
+            } else if (expr instanceof ExpressionStringLit) {
+                val = expr.firstToken.getStringValue();
+            } else if (expr instanceof ExpressionBooleanLit) {
+                val = expr.firstToken.getBooleanValue();
+            } else {
+                throw new SyntaxException("ConstDec ConstVal format wrong", token.getSourceLocation());
+            }
+            ConstDec constDec = new ConstDec(tempToken, id, val);
+            cstDecList.add(constDec);
+            consume();
+            while(token.getKind() == Kind.COMMA) {
+                tempToken = token;
+                consume();
+                if (token.getKind()!=Kind.IDENT) {
+                    throw new SyntaxException("ConstDec Conldn't find Identifier", token.getSourceLocation());
+                }
+                id = token;
+                consume();
+                if (token.getKind()!=Kind.EQ) {
+                    throw new SyntaxException("ConstDec Conldn't find EQ", token.getSourceLocation());
+                }
+                consume();
+                expr = const_val();
+                if (expr instanceof ExpressionNumLit) {
+                    val = expr.firstToken.getIntValue();
+                } else if (expr instanceof ExpressionStringLit) {
+                    val = expr.firstToken.getStringValue();
+                } else if (expr instanceof ExpressionBooleanLit) {
+                    val = expr.firstToken.getBooleanValue();
+                } else {
+                    throw new SyntaxException("ConstDec ConstVal format wrong", token.getSourceLocation());
+                }
+                constDec = new ConstDec(tempToken, id, val);
+                cstDecList.add(constDec);
+                consume();
+                if (token.getKind()==Kind.SEMI) {
+                    consume();
+                    break;
+                }
+            }
+        }
+
+        while (token.getKind()==Kind.KW_VAR) {
+            tempToken = token;
+            consume();
+            if (token.getKind()!=Kind.IDENT) {
+                throw new SyntaxException("VarDec Conldn't find Identifier", token.getSourceLocation());
+            }
+            IToken id = token;
+            VarDec varDec = new VarDec(tempToken, id);
+            varDecList.add(varDec);
+            consume();
+            while (token.getKind()!=Kind.COMMA) {
+                tempToken = token;
+                consume();
+                if (token.getKind()!=Kind.IDENT) {
+                    throw new SyntaxException("VarDec Conldn't find Identifier", token.getSourceLocation());
+                }
+                id = token;
+                varDec = new VarDec(tempToken, id);
+                varDecList.add(varDec);
+                consume();
+                if (token.getKind()==Kind.SEMI) {
+                    consume();
+                    break;
+                }
+            }        
+        }
+
+        while (token.getKind()==Kind.KW_PROCEDURE) {
+            tempToken = token;
+            consume();
+            if (token.getKind()!=Kind.IDENT) {
+                throw new SyntaxException("ProcedureDec Conldn't find Identifier", token.getSourceLocation());
+            }
+            IToken id = token;
+            consume();
+            if (token.getKind()!=Kind.SEMI) {
+                throw new SyntaxException("ProcedureDec Conldn't find \";\"", token.getSourceLocation());
+            }
+            Block block = block();
+            if (token.getKind()!=Kind.SEMI) {
+                throw new SyntaxException("ProcedureDec Conldn't find \";\"", token.getSourceLocation());
+            }
+            ProcDec procDec = new ProcDec(tempToken, id, block);
+            proDecList.add(procDec);
+            consume();
+        }
+        Statement statement = statement();
+        left = new Block(firstToken, cstDecList, varDecList, proDecList, statement);
+        return left;
+    }
+    private Program program() throws PLPException {
+        Program left;
+        IToken firsToken = token;
+        Block block = block();
+        if (token.getKind()!=Kind.DOT) {
+            throw new SyntaxException("Program Couldn't find \'.\'");
+        }
+        consume();
+        left = new Program(firsToken, block);
+        return left;
     }
 }
