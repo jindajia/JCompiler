@@ -346,6 +346,9 @@ public class Parser implements IParser{
             throw new SyntaxException("Program Couldn't find \'.\'");
         }
         consume();
+        if (token.getKind()!=Kind.EOF) {
+            throw new SyntaxException("Invalid Text after Program",token.getSourceLocation());
+        }
         left = new Program(firsToken, block);
         return left;
     }
