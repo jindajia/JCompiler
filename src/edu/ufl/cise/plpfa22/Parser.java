@@ -44,13 +44,8 @@ public class Parser implements IParser{
         // return null;
     }
     
-    private IToken consume() {
-        try {
-            token = lexer.next();
-        } catch (LexicalException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    private IToken consume() throws LexicalException{
+        token = lexer.next();
         return token;
     }
 
@@ -330,6 +325,7 @@ public class Parser implements IParser{
             if (token.getKind()!=Kind.SEMI) {
                 throw new SyntaxException("ProcedureDec couldn't find \";\"", token.getSourceLocation());
             }
+            consume();
             Block block = block();
             if (token.getKind()!=Kind.SEMI) {
                 throw new SyntaxException("ProcedureDec couldn't find \";\"", token.getSourceLocation());
