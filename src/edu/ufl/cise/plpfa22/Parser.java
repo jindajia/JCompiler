@@ -20,10 +20,13 @@ import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Program;
 import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementBlock;
 import edu.ufl.cise.plpfa22.ast.StatementCall;
 import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementIf;
 import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.VarDec;
 
 public class Parser implements IParser{
@@ -145,31 +148,68 @@ public class Parser implements IParser{
                     throw new SyntaxException("StatementQuestion Conldn't find Identifier", token.getSourceLocation());
                 }
                 break;
-            case BANG:
+            case BANG:{
                 consume();
                 Expression expr = expression();
                 left = new StatementOutput(firsToken, expr);
-                consume();
+            }
                 break;
             case EOF:
                 left = new StatementEmpty(firsToken);
                 break;
-            case KW_BEGIN:
+            case KW_BEGIN:{
+                consume();
+                Statement stmt;
+                ArrayList<Statement> statements = new ArrayList<>();
+                stmt = statement();
+                statements.add(stmt);
+                while(token.getKind()==Kind.SEMI) {
+                    consume();
+                    statements.add(statement());
+                }
+                if (token.getKind()!=Kind.KW_END) {
+                    throw new SyntaxException("StatementBlock Conldn't find \';\'", token.getSourceLocation()); 
+                }
+                consume();
+                left = new StatementBlock(firsToken, statements);
+            }
                 break;
             case KW_CALL:
                 consume();
-                if (token.getKind() == Kind.IDENT) {
-                    left = new StatementCall(firsToken, new Ident(token));
-                    consume();
-                } else {
+                if (token.getKind() != Kind.IDENT) {
                     throw new SyntaxException("StatementCall Conldn't find Identifier", token.getSourceLocation());
                 }
+                left = new StatementCall(firsToken, new Ident(token));
+                consume();
                 break;
-            case KW_IF:
+            case KW_IF:{
+                consume();
+                Expression expr;
+                Statement stmt;
+                expr = expression();
+                if (token.getKind()!=Kind.KW_THEN) {
+                    throw new SyntaxException("StatementIf Conldn't find kew word \"THEN\"", token.getSourceLocation());
+                }
+                consume();
+                stmt = statement();
+                left = new StatementIf(firsToken, expr, stmt);
+            }    
                 break;
-            case KW_WHILE:
+            case KW_WHILE:{
+                consume();
+                Expression expr;
+                Statement stmt;
+                expr = expression();
+                if (token.getKind()!=Kind.KW_DO) {
+                    throw new SyntaxException("StatementWhile Conldn't find \"DO\"", token.getSourceLocation());
+                }
+                consume();
+                stmt = statement();
+                left = new StatementWhile(firsToken, expr, stmt);
+            }
                 break;
             default:
+                left = new StatementEmpty(firsToken);
                 break;
         
         }

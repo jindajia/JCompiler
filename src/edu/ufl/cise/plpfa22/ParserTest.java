@@ -648,5 +648,7 @@ class ParserTest {
 	public static void main(String[] args) throws PLPException{
 		ParserTest parserTest = new ParserTest();
 		parserTest.test0();
+		parserTest.test1();
+		parserTest.test2();
 	}
 }
