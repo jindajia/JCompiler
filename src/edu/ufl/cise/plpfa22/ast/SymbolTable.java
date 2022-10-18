@@ -99,13 +99,22 @@ public class SymbolTable {
         return false;
     }
 
+    public boolean entryProcValid(SymbolEntry entry) {
+        for (Integer id:scopeStack) {
+            if (id==entry.scopeID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public SymbolEntry lookupProcEntry(String name) {
         LinkedList<SymbolEntry> list = table.get(name);
         if (list==null) {
             return null;
         }
         for (SymbolEntry entry:list) {
-            if (entry.scopeID==globalScope) {
+            if (entryProcValid(entry)) {
                 return entry;
             }
         }
@@ -114,12 +123,12 @@ public class SymbolTable {
 
     public boolean insertProcedure(String name, Object procDec) {
         SymbolEntry preEntry = lookupProcEntry(name);
-        if (preEntry==null || preEntry.scopeID!=globalScope) {
+        if (preEntry==null || preEntry.scopeID!=scopeStack.getFirst()) {
             LinkedList<SymbolEntry> list = table.get(name);
             if (list==null) {
                 list = new LinkedList<>();
             }
-            list.addLast(new SymbolEntry(globalScope, 0, procDec));//add to last position, because it's a procedure decalartion.
+            list.addLast(new SymbolEntry(scopeStack.getFirst(), level, procDec));//add to last position, because it's a procedure decalartion.
             table.put(name, list);
             return true;
         }

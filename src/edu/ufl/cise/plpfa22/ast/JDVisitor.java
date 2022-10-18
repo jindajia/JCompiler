@@ -95,41 +95,8 @@ public class JDVisitor implements ASTVisitor{
 
     @Override
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
-        Integer left = (Integer)expressionBinary.e0.visit(this, arg);
-        Integer right = (Integer)expressionBinary.e1.visit(this, arg);
-        Integer val;
-        switch(expressionBinary.op.getKind()) {
-            case DIV:
-                val = left/right;
-                return val;
-            case EQ:
-                break;
-            case GE:
-                break;
-            case GT:
-                break;
-            case LE:
-                break;
-            case LT:
-                break;
-            case MINUS:
-                val = left - right;
-                return val;
-            case MOD:
-                val = left % right;
-                return val;
-            case NEQ:
-                break;
-            case PLUS:
-                val = left + right;
-                return val;
-            case TIMES:
-                val = left * right;
-                return val;
-            default:
-                break;
-            
-        }
+        expressionBinary.e0.visit(this, arg);
+        expressionBinary.e1.visit(this, arg);
         return null;
     }
 
@@ -146,6 +113,10 @@ public class JDVisitor implements ASTVisitor{
         }
         expressionIdent.dec = (Declaration)attr;
         expressionIdent.nest = symbolTable.getLevel();
+        if (attr instanceof ConstDec) {
+            ConstDec constDec = (ConstDec)attr;
+            return constDec.val;
+        }
         return null;
     }
 
@@ -169,7 +140,7 @@ public class JDVisitor implements ASTVisitor{
         if (!symbolTable.insertProcedure(String.valueOf(procDec.ident.getText()), procDec)) {
             throw new ScopeException("visitProcedure error: procedure declaration insert failed");
         }
-        procDec.nest = 0;
+        procDec.nest = symbolTable.level;
         // procDec.block.visit(this, arg);
         return null;    
     }
