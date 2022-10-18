@@ -1,5 +1,4 @@
 package edu.ufl.cise.plpfa22;
-import edu.ufl.cise.plpfa22.Token;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 
