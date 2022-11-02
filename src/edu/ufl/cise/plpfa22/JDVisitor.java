@@ -1,10 +1,8 @@
-package edu.ufl.cise.plpfa22.ast;
+package edu.ufl.cise.plpfa22;
 
 
-
-import edu.ufl.cise.plpfa22.PLPException;
-import edu.ufl.cise.plpfa22.ScopeException;
-import edu.ufl.cise.plpfa22.ast.SymbolTable.SymbolEntry;
+import edu.ufl.cise.plpfa22.ast.*;
+import edu.ufl.cise.plpfa22.SymbolTable.SymbolEntry;
 
 public class JDVisitor implements ASTVisitor{
     SymbolTable symbolTable;
@@ -49,7 +47,7 @@ public class JDVisitor implements ASTVisitor{
         if (!symbolTable.insertAttribute(String.valueOf(varDec.ident.getText()), varDec)) {
             throw new ScopeException("visitVarDec error: var declaration insert failed");
         }
-        varDec.nest = symbolTable.getLevel();
+        varDec.setNest(symbolTable.getLevel());
         return null;
     }
 
@@ -111,8 +109,8 @@ public class JDVisitor implements ASTVisitor{
         if (attr == null || !(attr instanceof Declaration)) {
             throw new ScopeException("visitExpressionIdent error: attribute is null or not a Declaration class");
         }
-        expressionIdent.dec = (Declaration)attr;
-        expressionIdent.nest = symbolTable.getLevel();
+        expressionIdent.setDec((Declaration)attr);
+        expressionIdent.setNest(symbolTable.getLevel());
         if (attr instanceof ConstDec) {
             ConstDec constDec = (ConstDec)attr;
             return constDec.val;
@@ -140,7 +138,7 @@ public class JDVisitor implements ASTVisitor{
         if (!symbolTable.insertProcedure(String.valueOf(procDec.ident.getText()), procDec)) {
             throw new ScopeException("visitProcedure error: procedure declaration insert failed");
         }
-        procDec.nest = symbolTable.level;
+        procDec.setNest(symbolTable.level);
         // procDec.block.visit(this, arg);
         return null;    
     }
@@ -150,7 +148,7 @@ public class JDVisitor implements ASTVisitor{
         if (!symbolTable.insertAttribute(String.valueOf(constDec.ident.getText()), constDec)) {
             throw new ScopeException("visitConstDec error: const declaration insert failed");
         }
-        constDec.nest = symbolTable.getLevel();
+        constDec.setNest(symbolTable.getLevel());
         return null;
     }
 
@@ -171,8 +169,8 @@ public class JDVisitor implements ASTVisitor{
         if (attr == null || !(attr instanceof Declaration)) {
             throw new ScopeException("visitExpressionIdent error: attribute is null or not a Declaration class");
         }        
-        ident.dec = (Declaration)attr;;
-        ident.nest = symbolTable.getLevel();
+        ident.setDec((Declaration)attr);
+        ident.setNest(symbolTable.getLevel());
         return null;
     }
     
