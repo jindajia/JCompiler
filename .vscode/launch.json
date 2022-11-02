@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch TypeTest",
+            "request": "launch",
+            "mainClass": "edu.ufl.cise.plpfa22.TypeTest",
+            "projectName": "JCompiler_67a83b70"
+        },
+        {
+            "type": "java",
             "name": "Launch ScopeTest",
             "request": "launch",
             "mainClass": "edu.ufl.cise.plpfa22.ScopeTest",

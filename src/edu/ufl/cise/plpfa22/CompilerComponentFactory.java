@@ -6,6 +6,7 @@ package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.JDVisitor;
+import edu.ufl.cise.plpfa22.ast.PrettyPrintVisitor;
 
 public class CompilerComponentFactory {
 

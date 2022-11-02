@@ -3,7 +3,8 @@
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": {
         "include": [
-            "lib/**/*.jar"
+            "lib/**/*.jar",
+            "test-lib/**/*.jar"
         ],
         "exclude": [
             "lib/jar_files/xml-apis-1.4.01.jar",
