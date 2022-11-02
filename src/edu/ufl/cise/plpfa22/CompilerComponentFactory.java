@@ -17,7 +17,7 @@ public class CompilerComponentFactory {
     }
 
     public static ASTVisitor getScopeVisitor() {
-        return new JDVisitor();
+        return new JDScopeVisitor();
     }
 
     public static ASTVisitor getTypeInferenceVisitor() {

@@ -4,9 +4,9 @@ package edu.ufl.cise.plpfa22;
 import edu.ufl.cise.plpfa22.ast.*;
 import edu.ufl.cise.plpfa22.SymbolTable.SymbolEntry;
 
-public class JDVisitor implements ASTVisitor{
+public class JDScopeVisitor implements ASTVisitor{
     SymbolTable symbolTable;
-    public JDVisitor() {
+    public JDScopeVisitor() {
         symbolTable = new SymbolTable();
     }
     @Override
