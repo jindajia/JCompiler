@@ -94,7 +94,10 @@ public class JDTypeCheckVisitor implements ASTVisitor {
         if (!(dec instanceof VarDec)) {
             throw new TypeCheckException("visitStatementAssign error: only vairble type values can be assigned", dec.getSourceLocation());
         } else if (statementAssign.expression.getType()==null) {
-            if (cvm.isLastTraverse)
+            if (statementAssign.ident.getDec().getType()!=null) {
+                statementAssign.expression.setType(statementAssign.ident.getDec().getType());
+                cvm.setHasNewTyped(true);
+            }else if (cvm.isLastTraverse)
                 throw new TypeCheckException("visitStatementAssign error: right expression type can not be infered", dec.getSourceLocation());
         } else if (dec.getType()!=null && dec.getType()!=statementAssign.expression.getType()) {
             throw new TypeCheckException("visitStatementAssign error: left value type should be same with right", dec.getSourceLocation());
