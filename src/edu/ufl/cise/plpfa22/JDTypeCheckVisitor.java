@@ -100,7 +100,7 @@ public class JDTypeCheckVisitor implements ASTVisitor {
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
         statementOutput.expression.visit(this, arg);
         Expression expr = statementOutput.expression;
-        if (expr==null) {
+        if (expr.getType()==null) {
             throw new TypeCheckException("visitStatementOutput error: statementOutput expression type is null", statementOutput.getSourceLocation());
         } else if (expr.getType()!=Type.BOOLEAN && expr.getType()!=Type.NUMBER && expr.getType()!=Type.STRING) {
             throw new TypeCheckException("visitStatementOutput error: statementOutput type must be string, number or boolean", expr.getSourceLocation());
