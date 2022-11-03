@@ -194,7 +194,19 @@ public class JDTypeCheckVisitor implements ASTVisitor {
         Expression e1 = expressionBinary.e1;
         if (op.getKind()==Kind.PLUS) {
             if (e0.getType()==null && e1.getType()==null) {
-                if (cvm.isLastTraverse)
+                if (expressionBinary.getType()!=null) {
+                    e0.setType(expressionBinary.getType());
+                    if (e0 instanceof ExpressionIdent) {
+                        ExpressionIdent edt = (ExpressionIdent)e0;
+                        edt.getDec().setType(expressionBinary.getType());
+                    }
+                    e1.setType(expressionBinary.getType());
+                    if (e1 instanceof ExpressionIdent) {
+                        ExpressionIdent edt = (ExpressionIdent)e1;
+                        edt.getDec().setType(expressionBinary.getType());
+                    }
+                    cvm.setHasNewTyped(true);
+                } else if (cvm.isLastTraverse)
                     throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
             } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.STRING || e1.getType()==Type.BOOLEAN)) {
                 e0.setType(e1.getType());
