@@ -5,7 +5,6 @@
 package edu.ufl.cise.plpfa22;
 
 import edu.ufl.cise.plpfa22.ast.ASTVisitor;
-import edu.ufl.cise.plpfa22.ast.JDVisitor;
 
 public class CompilerComponentFactory {
 
@@ -18,10 +17,10 @@ public class CompilerComponentFactory {
     }
 
     public static ASTVisitor getScopeVisitor() {
-        return new JDVisitor();
+        return new JDScopeVisitor();
     }
 
     public static ASTVisitor getTypeInferenceVisitor() {
-        return null;
+        return new JDTypeCheckVisitor();
     }
 }

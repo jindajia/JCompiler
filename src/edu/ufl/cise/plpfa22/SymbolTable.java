@@ -1,4 +1,4 @@
-package edu.ufl.cise.plpfa22.ast;
+package edu.ufl.cise.plpfa22;
 
 import java.util.HashMap;
 import java.util.HashSet;
