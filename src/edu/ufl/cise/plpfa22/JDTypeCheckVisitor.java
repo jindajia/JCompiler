@@ -128,7 +128,9 @@ public class JDTypeCheckVisitor implements ASTVisitor {
         CheckVisitorMessage cvm = (CheckVisitorMessage)arg;
         statementInput.ident.visit(this, arg);
         Declaration dec = statementInput.ident.getDec();
-        if (dec.getType()==null){
+        if (!(dec instanceof VarDec)) {
+            throw new TypeCheckException("visitStatementInput error: statementInput type is not variable", statementInput.getSourceLocation());
+        }else if (dec.getType()==null){
             if (cvm.isLastTraverse)
                 throw new TypeCheckException("visitStatementInput error: statementInput declaration type is null", statementInput.getSourceLocation());
         } else if (dec.getType()!=Type.BOOLEAN && dec.getType()!=Type.NUMBER && dec.getType()!=Type.STRING) {
@@ -213,9 +215,17 @@ public class JDTypeCheckVisitor implements ASTVisitor {
                     throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
             } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.STRING || e1.getType()==Type.BOOLEAN)) {
                 e0.setType(e1.getType());
+                if (e0 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e0;
+                    edt.getDec().setType(e0.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
                 e1.setType(e0.getType());
+                if (e1 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e1;
+                    edt.getDec().setType(e1.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e1.getType()==e0.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
                 //do nothing
@@ -251,9 +261,17 @@ public class JDTypeCheckVisitor implements ASTVisitor {
                     throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
             } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.BOOLEAN)) {
                 e0.setType(e1.getType());
+                if (e0 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e0;
+                    edt.getDec().setType(e0.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.BOOLEAN)) {
                 e1.setType(e0.getType());
+                if (e1 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e1;
+                    edt.getDec().setType(e1.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e0.getType()==e1.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.BOOLEAN)) {
                 //do nothing
@@ -270,9 +288,17 @@ public class JDTypeCheckVisitor implements ASTVisitor {
                     throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
             } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.STRING || e1.getType()==Type.BOOLEAN)) {
                 e0.setType(e1.getType());
+                if (e0 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e0;
+                    edt.getDec().setType(e0.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
                 e1.setType(e0.getType());
+                if (e1 instanceof ExpressionIdent) {
+                    ExpressionIdent edt = (ExpressionIdent)e1;
+                    edt.getDec().setType(e1.getType());
+                }
                 cvm.setHasNewTyped(true);
             } else if (e1.getType()==e0.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
                 //do nothing
