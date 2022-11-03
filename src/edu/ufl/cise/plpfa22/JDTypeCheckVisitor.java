@@ -249,7 +249,7 @@ public class JDTypeCheckVisitor implements ASTVisitor {
             } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.BOOLEAN)) {
                 e0.setType(e1.getType());
                 cvm.setHasNewTyped(true);
-            } else if (e1.getType()==null && (e0.getType()==Type.NUMBER) || e0.getType()==Type.BOOLEAN) {
+            } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.BOOLEAN)) {
                 e1.setType(e0.getType());
                 cvm.setHasNewTyped(true);
             } else if (e0.getType()==e1.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.BOOLEAN)) {
