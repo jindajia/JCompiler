@@ -150,28 +150,52 @@ public class JDTypeCheckVisitor implements ASTVisitor {
         if (op.getKind()==Kind.PLUS) {
             if (e0.getType()==null && e1.getType()==null) {
                 throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
-            } else if (e0.getType()!=Type.BOOLEAN && e0.getType()!=Type.NUMBER && e0.getType()!=Type.STRING && e1.getType()!=Type.BOOLEAN && e1.getType()!=Type.NUMBER && e1.getType()!=Type.STRING) {
-                throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
-            } else if (e0.getType()!=e1.getType()) {
+            } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.STRING || e1.getType()==Type.BOOLEAN)) {
+                e0.setType(e1.getType());
+            } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
+                e1.setType(e0.getType());
+            } else if (e1.getType()==e0.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
+                //do nothing
+            } else {
                 throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
             }
             expressionBinary.setType(e0.getType());
         } else if (op.getKind()==Kind.MINUS || op.getKind()==Kind.DIV || op.getKind()==Kind.MOD) {
-            if (e0.getType()!=Type.NUMBER && e1.getType()!=Type.NUMBER) {
+            if (e0.getType()==null && e1.getType()==null) {
+                throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
+            } else if (e0.getType()==null && e1.getType()==Type.NUMBER) {
+                e0.setType(e1.getType());
+            } else if (e1.getType()==null && e0.getType()==Type.NUMBER) {
+                e1.setType(e0.getType());
+            } else if (e0.getType()==e1.getType() && e0.getType()==Type.NUMBER) {
+                //do nothing
+            } else {
                 throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
             }
             expressionBinary.setType(Type.NUMBER);
         } else if (op.getKind()==Kind.TIMES) {
-            if (e0.getType()!=Type.NUMBER && e0.getType()!=Type.BOOLEAN && e1.getType()!=Type.NUMBER && e1.getType()!=Type.BOOLEAN) {
-                throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
-            } else if (e0.getType()!=e1.getType()) {
+            if (e0.getType()==null && e1.getType()==null) {
+                throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
+            } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.BOOLEAN)) {
+                e0.setType(e1.getType());
+            } else if (e1.getType()==null && (e0.getType()==Type.NUMBER) || e0.getType()==Type.BOOLEAN) {
+                e1.setType(e0.getType());
+            } else if (e0.getType()==e1.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.BOOLEAN)) {
+                //do nothing
+            } else {
                 throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
             }
             expressionBinary.setType(e0.getType());
         } else if (op.getKind()==Kind.EQ || op.getKind()==Kind.NEQ || op.getKind()==Kind.LT || op.getKind()==Kind.LE || op.getKind()==Kind.GT || op.getKind()==Kind.GE) {
-            if (e0.getType()!=Type.BOOLEAN && e0.getType()!=Type.NUMBER && e0.getType()!=Type.STRING && e1.getType()!=Type.BOOLEAN && e1.getType()!=Type.NUMBER && e1.getType()!=Type.STRING) {
-                throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
-            } else if (e0.getType()!=e1.getType()) {
+            if (e0.getType()==null && e1.getType()==null) {
+                throw new TypeCheckException("visitExpressionBinary error: expressionBinary two expressions type are null", expressionBinary.getSourceLocation());
+            } else if (e0.getType()==null && (e1.getType()==Type.NUMBER || e1.getType()==Type.STRING || e1.getType()==Type.BOOLEAN)) {
+                e0.setType(e1.getType());
+            } else if (e1.getType()==null && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
+                e1.setType(e0.getType());
+            } else if (e1.getType()==e0.getType() && (e0.getType()==Type.NUMBER || e0.getType()==Type.STRING || e0.getType()==Type.BOOLEAN)) {
+                //do nothing
+            } else {
                 throw new TypeCheckException("visitExpressionBinary error: expressionBinary expression type not correct", expressionBinary.getSourceLocation());
             }
             expressionBinary.setType(Type.BOOLEAN);
