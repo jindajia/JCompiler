@@ -21,6 +21,6 @@ public class CompilerComponentFactory {
     }
 
     public static ASTVisitor getTypeInferenceVisitor() {
-        return null;
+        return new JDTypeCheckVisitor();
     }
 }
