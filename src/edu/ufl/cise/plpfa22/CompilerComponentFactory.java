@@ -23,4 +23,8 @@ public class CompilerComponentFactory {
     public static ASTVisitor getTypeInferenceVisitor() {
         return new JDTypeCheckVisitor();
     }
+
+    public static ASTVisitor getCodeGenVisitor(String className, String packageName, String string) {
+        return new CodeGenVisitor(className, packageName, string);
+    }
 }
