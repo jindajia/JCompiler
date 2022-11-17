@@ -1604,34 +1604,8 @@ void NickTest() throws PLPException{
 	}
 
 	public static void main(String[] args) throws PLPException{
-		ParserTest parserTest = new ParserTest();
-		parserTest.test0();
-		parserTest.test1();
-		parserTest.test2();
-		parserTest.test3();
-		parserTest.test4();
-		parserTest.test5();
-		parserTest.test6();
-		parserTest.test7();
-		parserTest.test8();
-		parserTest.test9();
-		parserTest.test10();
-		parserTest.test11();
-		parserTest.test12();
-		parserTest.test13();
-		parserTest.test14();
-		parserTest.test15();
-
-		//custom Tests
-		parserTest.coleTest1();
-		parserTest.coleTest2();
-		parserTest.coleTest3();
-		parserTest.InvalidEndChar();
-		parserTest.test18();
-		parserTest.shr_test1();
-		parserTest.shr_test2();
-		parserTest.shr_test3();
-		parserTest.shr_test4();
-		parserTest.shr_test5();
+		String s = "ss";
+		// s.concat(s)
+		System.out.println(s.startsWith("ss"));
 	}
 }
