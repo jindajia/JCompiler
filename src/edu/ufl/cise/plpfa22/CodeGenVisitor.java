@@ -362,28 +362,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			expressionBinary.e1.visit(this, arg);
 			switch (op) {
 				case EQ -> {
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/String;)Z", false);
-					// mv.visitLdcInsn(1);
-					// Label label0 = new Label();
-					// mv.visitJumpInsn(IF_ICMPNE, label0);
-					// mv.visitInsn(ICONST_1);
-					// Label label1 = new Label();
-					// mv.visitJumpInsn(GOTO, label1);
-					// mv.visitLabel(label0);
-					// mv.visitInsn(ICONST_0);
-					// mv.visitLabel(label1);
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/Object;)Z", false);
 				}
 				case NEQ -> {
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/String;)Z", false);
-					// mv.visitLdcInsn(1);
-					// Label label0 = new Label();
-					// mv.visitJumpInsn(IF_ICMPEQ, label0);
-					// mv.visitInsn(ICONST_1);
-					// Label label1 = new Label();
-					// mv.visitJumpInsn(GOTO, label1);
-					// mv.visitLabel(label0);
-					// mv.visitInsn(ICONST_0);
-					// mv.visitLabel(label1);
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/Object;)Z", false);
+					mv.visitInsn(ICONST_0);
+					Label labelNumEqFalseBr = new Label();
+					mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr);
+					mv.visitInsn(ICONST_1);
+					Label labelPostNumEq = new Label();
+					mv.visitJumpInsn(GOTO, labelPostNumEq);
+					mv.visitLabel(labelNumEqFalseBr);
+					mv.visitInsn(ICONST_0);
+					mv.visitLabel(labelPostNumEq);
 				}
 				default ->	throw new UnsupportedOperationException();
 			}
