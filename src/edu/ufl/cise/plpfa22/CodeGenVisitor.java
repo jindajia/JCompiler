@@ -379,15 +379,15 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitLabel(labelPostNumEq);
 				}
 				case LT -> {
-					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
+					expressionBinary.e0.visit(this, arg);
 					Label label0 = new Label();
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/Object;)Z", false);
 					mv.visitInsn(ICONST_1);
-					mv.visitJumpInsn(IF_ICMPNE, label0);
+					mv.visitJumpInsn(IF_ICMPEQ, label0);
 					Label label1 = new Label();
-					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
+					expressionBinary.e0.visit(this, arg);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
 					mv.visitJumpInsn(GOTO, label1);
 					mv.visitLabel(label0);
@@ -395,19 +395,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitLabel(label1);
 				}
 				case LE -> {
-					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
+					expressionBinary.e0.visit(this, arg);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
 				}
 				case GT -> {
-					expressionBinary.e1.visit(this, arg);
 					expressionBinary.e0.visit(this, arg);
+					expressionBinary.e1.visit(this, arg);
 					Label label0 = new Label();
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "equals", "(Ljava/lang/Object;)Z", false);
 					mv.visitInsn(ICONST_1);
-					mv.visitJumpInsn(IF_ICMPNE, label0);
-					expressionBinary.e1.visit(this, arg);
+					mv.visitJumpInsn(IF_ICMPEQ, label0);
 					expressionBinary.e0.visit(this, arg);
+					expressionBinary.e1.visit(this, arg);
 					Label label1 = new Label();
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
 					mv.visitJumpInsn(GOTO, label1);
@@ -416,8 +416,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitLabel(label1);
 				}
 				case GE -> {
-					expressionBinary.e1.visit(this, arg);
 					expressionBinary.e0.visit(this, arg);
+					expressionBinary.e1.visit(this, arg);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
 				}
 				default ->	throw new UnsupportedOperationException();
