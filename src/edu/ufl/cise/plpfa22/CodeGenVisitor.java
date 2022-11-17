@@ -131,7 +131,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+        statementIf.expression.visit(this, arg);
+		mv.visitInsn(ICONST_1);
+		Label label0 = new Label();
+		mv.visitJumpInsn(IF_ICMPNE, label0);
+        statementIf.statement.visit(this, arg);
+		mv.visitLabel(label0);
+		return null;
 	}
 
 	@Override
@@ -224,23 +231,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			expressionBinary.e0.visit(this, arg);
 			expressionBinary.e1.visit(this, arg);
 			switch (op) {
-				case ASSIGN:
-					break;
-				case BANG:
-					break;
-				case BOOLEAN_LIT:
-					break;
-				case COMMA:
-					break;
-				case COMMENT:
-					break;
-				case DIV:
-					break;
-				case DOT:
-					break;
-				case EOF:
-					break;
-				case EQ: {
+				case EQ -> {
 					Label labelNumEqFalseBr = new Label();
 					mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr);
 					mv.visitInsn(ICONST_1);
@@ -250,10 +241,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_0);
 					mv.visitLabel(labelPostNumEq);
 				}
-					break;
-				case ERROR:
-					break;
-				case GE: {
+				case GE -> {
 					Label label0 = new Label();
 					mv.visitJumpInsn(IF_ICMPGE, label0);
 					mv.visitInsn(ICONST_0);
@@ -263,8 +251,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_1);
 					mv.visitLabel(label1);
 				}
-					break;
-				case GT: {
+				case GT -> {
 					Label label0 = new Label();
 					mv.visitJumpInsn(IF_ICMPGT, label0);
 					mv.visitInsn(ICONST_0);
@@ -274,30 +261,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_1);
 					mv.visitLabel(label1);
 				}
-					break;
-				case IDENT:
-					break;
-				case KW_BEGIN:
-					break;
-				case KW_CALL:
-					break;
-				case KW_CONST:
-					break;
-				case KW_DO:
-					break;
-				case KW_END:
-					break;
-				case KW_IF:
-					break;
-				case KW_PROCEDURE:
-					break;
-				case KW_THEN:
-					break;
-				case KW_VAR:
-					break;
-				case KW_WHILE:
-					break;
-				case LE: {
+				case LE -> {
 					Label label0 = new Label();
 					mv.visitJumpInsn(IF_ICMPLE, label0);
 					mv.visitInsn(ICONST_0);
@@ -307,10 +271,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_1);
 					mv.visitLabel(label1);
 				}
-					break;
-				case LPAREN:
-					break;
-				case LT: {
+				case LT -> {
 					Label label0 = new Label();
 					mv.visitJumpInsn(IF_ICMPLT, label0);
 					mv.visitInsn(ICONST_0);
@@ -320,12 +281,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_1);
 					mv.visitLabel(label1);
 				}
-					break;
-				case MINUS:
-					break;
-				case MOD:
-					break;
-				case NEQ: {
+				case NEQ -> {
 					Label labelNumEqFalseBr = new Label();
 					mv.visitJumpInsn(IF_ICMPEQ, labelNumEqFalseBr);
 					mv.visitInsn(ICONST_1);
@@ -335,25 +291,31 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitInsn(ICONST_0);
 					mv.visitLabel(labelPostNumEq);		
 				}
-					break;
-				case NUM_LIT:
-					break;
-				case PLUS:
-					break;
-				case QUESTION:
-					break;
-				case QUOTE:
-					break;
-				case RPAREN:
-					break;
-				case SEMI:
-					break;
-				case STRING_LIT:
-					break;
-				case TIMES:
-					break;
-				default:
-					break;
+				case PLUS -> {
+					mv.visitInsn(IADD);
+					mv.visitInsn(ICONST_1);
+					Label label0 = new Label();
+					Label label1 = new Label();
+					mv.visitJumpInsn(IF_ICMPGE, label0);
+					mv.visitInsn(ICONST_0);
+					mv.visitJumpInsn(GOTO, label1);
+					mv.visitLabel(label0);
+					mv.visitInsn(ICONST_1);
+					mv.visitLabel(label1);
+				}
+				case TIMES -> {
+					mv.visitInsn(IADD);
+					mv.visitInsn(ICONST_2);
+					Label label0 = new Label();
+					Label label1 = new Label();
+					mv.visitJumpInsn(IF_ICMPEQ, label0);
+					mv.visitInsn(ICONST_0);
+					mv.visitJumpInsn(GOTO, label1);
+					mv.visitLabel(label0);
+					mv.visitInsn(ICONST_1);
+					mv.visitLabel(label1);
+				}
+				default -> throw new UnsupportedOperationException();
 				
 			}
 		}
@@ -419,6 +381,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", "(Ljava/lang/String;)Z", false);
+				}
+				case PLUS -> {
+					expressionBinary.e0.visit(this, arg);
+					expressionBinary.e1.visit(this, arg);
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;", false);
 				}
 				default ->	throw new UnsupportedOperationException();
 			}

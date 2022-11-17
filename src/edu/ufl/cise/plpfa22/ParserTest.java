@@ -1605,6 +1605,7 @@ void NickTest() throws PLPException{
 
 	public static void main(String[] args) throws PLPException{
 		String s = "ss";
+		// s.concat(s)
 		System.out.println(s.startsWith("ss"));
 	}
 }
