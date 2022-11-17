@@ -409,7 +409,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
 					Label label1 = new Label();
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", "(Ljava/lang/String;)Z", false);
 					mv.visitJumpInsn(GOTO, label1);
 					mv.visitLabel(label0);
 					mv.visitInsn(ICONST_0);
@@ -418,7 +418,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				case GE -> {
 					expressionBinary.e0.visit(this, arg);
 					expressionBinary.e1.visit(this, arg);
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", "(Ljava/lang/String;)Z", false);
 				}
 				default ->	throw new UnsupportedOperationException();
 			}
