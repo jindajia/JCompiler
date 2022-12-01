@@ -122,6 +122,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
+		MethodVisitor methodVisitor = (MethodVisitor)arg;
+		methodVisitor.visitVarInsn(ALOAD, 0);
 		statementAssign.expression.visit(this, arg);
         statementAssign.ident.visit(this, arg);
 		return null;
@@ -168,6 +170,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor)arg;
 		mv.visitCode();
 		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+		mv.visitVarInsn(ALOAD, 0);
 		statementOutput.expression.visit(this, arg);
 		Type etype = statementOutput.expression.getType();
 		String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
@@ -461,7 +464,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			methodVisitor.visitEnd();
 		} else if (dec instanceof VarDec) {
 			VarDec varDec = (VarDec)dec;
-			methodVisitor.visitVarInsn(ALOAD, 0);
 			String name = String.valueOf(varDec.ident.getText());
 			String despt = "";
 			switch (varDec.getType()) {
