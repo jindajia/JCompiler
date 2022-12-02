@@ -57,6 +57,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitBlock(Block block, Object arg) throws PLPException {
 		ClassWriter classWriter = (ClassWriter)arg;
+		List<GenClass> list = new LinkedList<>();
 		for (ConstDec constDec : block.constDecs) {
 			constDec.visit(this, classWriter);
 		}
@@ -64,7 +65,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			varDec.visit(this, classWriter);
 		}
 		for (ProcDec procDec: block.procedureDecs) {
-			procDec.visit(this, className);
+			list.add((GenClass)procDec.visit(this, className));
 		}
 		//Creates a MethodVisitor for run method
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
@@ -74,7 +75,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0,0);
 		methodVisitor.visitEnd();
-		return null;
+		return list;
 	}
 
 	@Override
@@ -96,7 +97,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 		methodVisitor.visitInsn(RETURN);
-		methodVisitor.visitMaxs(1, 1);
+		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
 
 		//create main method code
@@ -110,13 +111,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitMaxs(0,0);
 		methodVisitor.visitEnd();
 
+		List<GenClass> l = new LinkedList<GenClass>();
 		//visit the block, passing it the methodVisitor
-		program.block.visit(this, classWriter);
+		List<GenClass> list = (List<GenClass>)program.block.visit(this, classWriter);
 		//finish up the class
         classWriter.visitEnd();
         //return the bytes making up the classfile
-		List<GenClass> l = new LinkedList<GenClass>();
 		l.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		l.addAll(list);
 		return l;
 	}
 
@@ -157,7 +159,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+	/* 	visitStatementCall
+		• Create instance of class corresponding to procedure
+		• The <init> method takes instance of lexically enclosing class as parameter. If the procedure is
+		enclosed in this one, ALOAD_0 works. (Recall that we are in a virtual method, run, so the JVM will have automatically loaded “this” into local variable slot 0.) Otherwise follow the chain of this$n references to find an instance of the enclosing class of the procedure. (Use nesting levels)
+		• Invoke run method.*/	
+		String procName = String.valueOf(statementCall.ident.getText());
+		MethodVisitor methodVisitor = (MethodVisitor)arg;
+		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+"$"+procName); 
+		methodVisitor.visitInsn(DUP);
+		methodVisitor.visitVarInsn(ALOAD,0);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+"$"+procName, "<init>","(L"+fullyQualifiedClassName+";)V",false);
+		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+"$"+procName, "run", "()V", false);
+		return null;
 	}
 
 	@Override
@@ -520,7 +534,30 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+	/* 	• create a classWriter object for new class
+		• add field for reference to enclosing class (this$n where n is nesting level)
+		• create init method that takes an instance of enclosing class as parameter and initializes this$n, then invokes superclass constructor (java/lang/Object).
+		• Visit block to create run method 
+	*/
+		ClassWriter classWriter = new ClassWriter(0);
+		String procedureName = String.valueOf(procDec.ident.getText());
+		classWriter.visit(V18, ACC_SUPER, fullyQualifiedClassName+"$"+procedureName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
+		// classWriter.visitSource("Var2.java", null); classWriter.visitNestHost("edu/ufl/cise/plpfa22/codeGenSamples/Var2");
+		// classWriter.visitInnerClass("edu/ufl/cise/plpfa22/codeGenSamples/Var2$p", "edu/ufl/cise/plpfa22/codeGenSamples/Var2", "p", 0);
+		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+fullyQualifiedClassName+";)V", null, null);
+		methodVisitor.visitCode();
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitVarInsn(ALOAD, 1);
+		methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+procedureName, "this$"+procDec.getNest(), "L"+fullyQualifiedClassName+";");
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		methodVisitor.visitInsn(RETURN);
+		methodVisitor.visitMaxs(0, 0);
+		methodVisitor.visitEnd();
+
+		//visit the block, passing it the methodVisitor
+		procDec.block.visit(this, classWriter);
+		return new GenClass(fullyQualifiedClassName+"$"+procedureName, classWriter.toByteArray());
 	}
 
 	@Override
