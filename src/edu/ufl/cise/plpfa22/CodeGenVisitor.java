@@ -170,7 +170,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor)arg;
 		mv.visitCode();
 		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-		mv.visitVarInsn(ALOAD, 0);
 		statementOutput.expression.visit(this, arg);
 		Type etype = statementOutput.expression.getType();
 		String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
@@ -482,6 +481,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					break;
 				
 			}
+			methodVisitor.visitVarInsn(ALOAD, 0);
 			methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName, name, despt);
 			methodVisitor.visitEnd();
 		} else if (dec instanceof ProcDec) {
@@ -582,7 +582,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			if (nest>0) {
 				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+name,"this&"+nest, "L"+fullyQualifiedClassName+";");
 			} else {
-				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,name, type);
+				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, name, type);
 			}
 		}
 		return null;
