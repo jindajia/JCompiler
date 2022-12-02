@@ -44,7 +44,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	
 	ClassWriter classWriter;
 
-	
+	String currentClass;
+
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
 		this.packageName = packageName;
@@ -80,6 +81,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProgram(Program program, Object arg) throws PLPException {
+		this.currentClass = className;
 		ASTVisitor scopes = CompilerComponentFactory.getScopeVisitor();
 		program.visit(scopes, null);
 		MethodVisitor methodVisitor;
@@ -539,7 +541,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		• create init method that takes an instance of enclosing class as parameter and initializes this$n, then invokes superclass constructor (java/lang/Object).
 		• Visit block to create run method 
 	*/
-		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		String tempName = currentClass;
+		currentClass = String.valueOf(procDec.ident.getText());
+		classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		String procedureName = String.valueOf(procDec.ident.getText());
 		classWriter.visit(V18, ACC_SUPER, fullyQualifiedClassName+"$"+procedureName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 		
@@ -560,6 +564,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 		//visit the block, passing it the methodVisitor
 		procDec.block.visit(this, classWriter);
+		currentClass = tempName;
 		return new GenClass(fullyQualifiedClassName+"$"+procedureName, classWriter.toByteArray());
 	}
 
@@ -622,6 +627,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			if (nest>0) {
 				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+name,"this&"+nest, "L"+fullyQualifiedClassName+";");
 			} else {
+				if (!currentClass.equals(className)){
+					methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this&"+nest, "L"+fullyQualifiedClassName+";");
+				}
 				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, name, type);
 			}
 		}
