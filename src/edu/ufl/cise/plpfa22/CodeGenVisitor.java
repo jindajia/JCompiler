@@ -539,9 +539,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		• create init method that takes an instance of enclosing class as parameter and initializes this$n, then invokes superclass constructor (java/lang/Object).
 		• Visit block to create run method 
 	*/
-		ClassWriter classWriter = new ClassWriter(0);
+		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		String procedureName = String.valueOf(procDec.ident.getText());
 		classWriter.visit(V18, ACC_SUPER, fullyQualifiedClassName+"$"+procedureName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
+		
+		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+fullyQualifiedClassName+";", null, null); 
+		fieldVisitor.visitEnd();
 		// classWriter.visitSource("Var2.java", null); classWriter.visitNestHost("edu/ufl/cise/plpfa22/codeGenSamples/Var2");
 		// classWriter.visitInnerClass("edu/ufl/cise/plpfa22/codeGenSamples/Var2$p", "edu/ufl/cise/plpfa22/codeGenSamples/Var2", "p", 0);
 		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+fullyQualifiedClassName+";)V", null, null);
