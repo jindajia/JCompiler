@@ -65,7 +65,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		for (VarDec varDec : block.varDecs) {
 			varDec.visit(this, classWriter);
 		}
-		for (ProcDec procDec: block.procedureDecs) {
+		List<ProcDec> procList = getAllProcedures(block);
+		for (ProcDec procDec: procList) {
 			list.add((GenClass)procDec.visit(this, classWriter));
 		}
 		//Creates a MethodVisitor for run method
@@ -93,7 +94,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// restore ClassWriter.COMPUTE_FRAMES
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
-		for (ProcDec proc:program.block.procedureDecs) {
+		List<ProcDec> procList = getAllProcedures(program.block);
+		for (ProcDec proc:procList) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
 			classWriter.visitNestMember(fullyQualifiedClassName+"$"+procName);
@@ -659,5 +661,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 		return null;
 	}
-
+	public List<ProcDec> getAllProcedures(Block block) {
+		List<ProcDec> resultList = new LinkedList<>();
+		List<ProcDec> procList = new LinkedList<>(block.procedureDecs);
+		while(!procList.isEmpty()) {
+			int c = procList.size();
+			while(c>0){
+				ProcDec proc = procList.get(0);
+				procList.remove(0);
+				c--;
+				if (proc.block.procedureDecs.size()>0) {
+					procList.addAll(proc.block.procedureDecs);
+				}
+				resultList.add(proc);
+			}
+		}
+		return resultList;
+	}
 }
