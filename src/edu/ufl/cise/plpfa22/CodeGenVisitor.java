@@ -93,12 +93,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// restore ClassWriter.COMPUTE_FRAMES
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
-		// for (ProcDec proc:program.block.procedureDecs) {
-		// 	String procName = String.valueOf(proc.ident.getText());
-		// 	classWriter.visitSource(className+".java", null); 
-		// 	classWriter.visitNestMember(fullyQualifiedClassName+"$"+procName);
-		// 	classWriter.visitInnerClass(fullyQualifiedClassName+"$"+procName, fullyQualifiedClassName, procName, 0);
-		// }
+		for (ProcDec proc:program.block.procedureDecs) {
+			String procName = String.valueOf(proc.ident.getText());
+			classWriter.visitSource(className+".java", null); 
+			classWriter.visitNestMember(fullyQualifiedClassName+"$"+procName);
+			classWriter.visitInnerClass(fullyQualifiedClassName+"$"+procName, fullyQualifiedClassName, procName, 0);
+		}
 
 		//create init method code
 		methodVisitor = classWriter.visitMethod(0, "<init>", "()V", null, null);
@@ -134,17 +134,18 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
 		MethodVisitor methodVisitor = (MethodVisitor)arg;
+		statementAssign.expression.visit(this, arg);
+
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		Declaration dec = statementAssign.ident.getDec();
 		if (dec instanceof VarDec){
 			VarDec varDec = (VarDec)dec;
 			int nest = varDec.getNest();
 			if (!currentClass.equals(className)){
-				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this&"+nest, "L"+fullyQualifiedClassName+";");
+				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this$"+nest, "L"+fullyQualifiedClassName+";");
 			}
 		}
-
-		statementAssign.expression.visit(this, arg);
+		methodVisitor.visitInsn(SWAP);
         statementAssign.ident.visit(this, arg);
 		return null;
 	}
@@ -516,7 +517,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			methodVisitor.visitVarInsn(ALOAD, 0);
 			int nest = varDec.getNest();
 			if (!currentClass.equals(className)){
-				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this&"+nest, "L"+fullyQualifiedClassName+";");
+				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this$"+nest, "L"+fullyQualifiedClassName+";");
 			}
 			methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName, name, despt);
 			methodVisitor.visitEnd();
@@ -570,8 +571,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		
 		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+fullyQualifiedClassName+";", null, null); 
 		fieldVisitor.visitEnd();
-		// classWriter.visitSource("Var2.java", null); classWriter.visitNestHost("edu/ufl/cise/plpfa22/codeGenSamples/Var2");
-		// classWriter.visitInnerClass("edu/ufl/cise/plpfa22/codeGenSamples/Var2$p", "edu/ufl/cise/plpfa22/codeGenSamples/Var2", "p", 0);
+		classWriter.visitSource(className+".java", null); 
+		classWriter.visitNestHost(fullyQualifiedClassName);
+		classWriter.visitInnerClass(fullyQualifiedClassName+"$"+currentClass, fullyQualifiedClassName, currentClass, 0);
 		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+fullyQualifiedClassName+";)V", null, null);
 		methodVisitor.visitCode();
 		methodVisitor.visitVarInsn(ALOAD, 0);
@@ -649,7 +651,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				
 			}
 			if (nest>0) {
-				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+name,"this&"+nest, "L"+fullyQualifiedClassName+";");
+				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+name,"this$"+nest, "L"+fullyQualifiedClassName+";");
 			} else {
 
 				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, name, type);
