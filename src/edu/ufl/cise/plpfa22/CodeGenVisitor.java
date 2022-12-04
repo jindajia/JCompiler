@@ -65,9 +65,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		for (VarDec varDec : block.varDecs) {
 			varDec.visit(this, classWriter);
 		}
-		List<ProcDec> procList = getAllProcedures(block);
-		for (ProcDec procDec: procList) {
-			list.add((GenClass)procDec.visit(this, classWriter));
+		for (ProcDec procDec: block.procedureDecs) {
+			list.addAll((List<GenClass>)procDec.visit(this, classWriter));
 		}
 		//Creates a MethodVisitor for run method
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
@@ -94,8 +93,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// restore ClassWriter.COMPUTE_FRAMES
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
-		List<ProcDec> procList = getAllProcedures(program.block);
-		for (ProcDec proc:procList) {
+		for (ProcDec proc:program.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
 			classWriter.visitNestMember(fullyQualifiedClassName+"$"+procName);
@@ -564,6 +562,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		• create init method that takes an instance of enclosing class as parameter and initializes this$n, then invokes superclass constructor (java/lang/Object).
 		• Visit block to create run method 
 	*/
+		List<GenClass> list = new LinkedList<>();
 		String tempName = currentClass;
 		ClassWriter tempClassWriter = classWriter;
 		currentClass = String.valueOf(procDec.ident.getText());
@@ -588,12 +587,13 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitEnd();
 
 		//visit the block, passing it the methodVisitor
-		procDec.block.visit(this, classWriter);
+		list.addAll((List<GenClass>)procDec.block.visit(this, classWriter));
 		classWriter.visitEnd();
 		GenClass genClass = new GenClass(fullyQualifiedClassName+"$"+procedureName, classWriter.toByteArray());
+		list.add(0,genClass);
 		classWriter = tempClassWriter;
 		currentClass = tempName;
-		return genClass;
+		return list;
 	}
 
 	@Override
