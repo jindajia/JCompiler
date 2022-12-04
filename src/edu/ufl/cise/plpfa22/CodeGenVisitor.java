@@ -2,6 +2,7 @@ package edu.ufl.cise.plpfa22;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -45,7 +46,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	ClassWriter classWriter;
 
 	String currentClass;
-
+	List<String> classList;
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
 		this.packageName = packageName;
@@ -53,6 +54,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		this.sourceFileName = sourceFileName;
 		this.fullyQualifiedClassName = packageName + "/" + className;
 		this.classDesc="L"+this.fullyQualifiedClassName+';';
+		this.currentClass = className;
+		this.classList = new LinkedList<>();
 	}
 
 	@Override
@@ -81,7 +84,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProgram(Program program, Object arg) throws PLPException {
-		this.currentClass = className;
 		ASTVisitor scopes = CompilerComponentFactory.getScopeVisitor();
 		program.visit(scopes, null);
 		MethodVisitor methodVisitor;
@@ -91,13 +93,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// instead of ClassWriter.COMPUTE_FRAMES.  The result will not be a valid classfile,
 		// but you will be able to print it so you can see the instructions.  After fixing,
 		// restore ClassWriter.COMPUTE_FRAMES
-		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
+		String currentFieldName = getCurrentField();
+		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, currentFieldName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
 		for (ProcDec proc:program.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
-			classWriter.visitNestMember(fullyQualifiedClassName+"$"+procName);
-			classWriter.visitInnerClass(fullyQualifiedClassName+"$"+procName, fullyQualifiedClassName, procName, 0);
+			classWriter.visitNestMember(currentFieldName+"$"+procName);
+			classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
 		}
 
 		//create init method code
@@ -112,10 +115,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//create main method code
 		methodVisitor = classWriter.visitMethod(ACC_STATIC | ACC_PUBLIC, "main", "([Ljava/lang/String;)V", null, null);
 		methodVisitor.visitCode();
-		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName);
+		methodVisitor.visitTypeInsn(NEW, currentFieldName);
 		methodVisitor.visitInsn(DUP);
-		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName, "<init>", "()V", false); 
-		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName, "run", "()V", false);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, currentFieldName, "<init>", "()V", false); 
+		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, currentFieldName, "run", "()V", false);
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0,0);
 		methodVisitor.visitEnd();
@@ -126,7 +129,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//finish up the class
         classWriter.visitEnd();
         //return the bytes making up the classfile
-		l.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		l.add(new GenClass(currentFieldName, classWriter.toByteArray()));
 		l.addAll(list);
 		return l;
 	}
@@ -566,20 +569,28 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		String tempName = currentClass;
 		ClassWriter tempClassWriter = classWriter;
 		currentClass = String.valueOf(procDec.ident.getText());
+		classList.add(currentClass);
 		classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		String procedureName = String.valueOf(procDec.ident.getText());
-		classWriter.visit(V18, ACC_SUPER, fullyQualifiedClassName+"$"+procedureName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
+		String parentFieldName = getParentField();
+		String currentFieldName = getCurrentField();
+		classWriter.visit(V18, ACC_SUPER, currentFieldName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 		
-		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+fullyQualifiedClassName+";", null, null); 
+		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+parentFieldName+";", null, null); 
 		fieldVisitor.visitEnd();
 		classWriter.visitSource(className+".java", null); 
-		classWriter.visitNestHost(fullyQualifiedClassName);
-		classWriter.visitInnerClass(fullyQualifiedClassName+"$"+currentClass, fullyQualifiedClassName, currentClass, 0);
-		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+fullyQualifiedClassName+";)V", null, null);
+		classWriter.visitNestHost(parentFieldName);
+		for (ProcDec proc:procDec.block.procedureDecs) {
+			String procName = String.valueOf(proc.ident.getText());
+			classWriter.visitSource(className+".java", null); 
+			classWriter.visitNestMember(currentFieldName+"$"+procName);
+			classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
+		}
+		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+parentFieldName+";)V", null, null);
 		methodVisitor.visitCode();
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		methodVisitor.visitVarInsn(ALOAD, 1);
-		methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+procedureName, "this$"+procDec.getNest(), "L"+fullyQualifiedClassName+";");
+		methodVisitor.visitFieldInsn(PUTFIELD, parentFieldName+"$"+procedureName, "this$"+procDec.getNest(), "L"+parentFieldName+";");
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 		methodVisitor.visitInsn(RETURN);
@@ -589,10 +600,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//visit the block, passing it the methodVisitor
 		list.addAll((List<GenClass>)procDec.block.visit(this, classWriter));
 		classWriter.visitEnd();
-		GenClass genClass = new GenClass(fullyQualifiedClassName+"$"+procedureName, classWriter.toByteArray());
+		GenClass genClass = new GenClass(currentFieldName, classWriter.toByteArray());
 		list.add(0,genClass);
 		classWriter = tempClassWriter;
 		currentClass = tempName;
+		classList.remove(classList.size()-1);
 		return list;
 	}
 
@@ -677,5 +689,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			}
 		}
 		return resultList;
+	}
+
+	public String getParentField() {
+		String s = fullyQualifiedClassName;
+		for (int i=0;i<classList.size()-1;++i) {
+			s += "$"+classList.get(i);
+		}
+		return s;
+	}
+
+	public String getCurrentField() {
+		String s = fullyQualifiedClassName;
+		for (String field:classList) {
+			s += "$"+field;
+		}
+		return s;
 	}
 }
