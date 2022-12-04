@@ -13,7 +13,7 @@ public class ProcedureSystem {
     public void addProcedureInfo(String name, ProcedureInfo procInfo){
         dataMap.put(name, procInfo);
     }
-    public ProcedureInfo ProcedureInfo(String name) {
+    public ProcedureInfo getProcedureInfo(String name) {
         return dataMap.get(name);
     }
 }

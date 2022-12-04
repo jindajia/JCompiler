@@ -188,12 +188,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		enclosed in this one, ALOAD_0 works. (Recall that we are in a virtual method, run, so the JVM will have automatically loaded “this” into local variable slot 0.) Otherwise follow the chain of this$n references to find an instance of the enclosing class of the procedure. (Use nesting levels)
 		• Invoke run method.*/	
 		String procName = String.valueOf(statementCall.ident.getText());
+		String currentFieldName = procedureSystem.getProcedureInfo(procName).currentfieldName();
+		String parentFieldName = procedureSystem.getProcedureInfo(procName).parentFieldName();
 		MethodVisitor methodVisitor = (MethodVisitor)arg;
-		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+"$"+procName); 
+		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+currentFieldName); 
 		methodVisitor.visitInsn(DUP);
 		methodVisitor.visitVarInsn(ALOAD,0);
-		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+"$"+procName, "<init>","(L"+fullyQualifiedClassName+";)V",false);
-		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+"$"+procName, "run", "()V", false);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+currentFieldName, "<init>","(L"+fullyQualifiedClassName+parentFieldName+";)V",false);
+		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+currentFieldName, "run", "()V", false);
 		return null;
 	}
 
