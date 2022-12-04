@@ -2,7 +2,6 @@ package edu.ufl.cise.plpfa22;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -47,6 +46,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	String currentClass;
 	List<String> classList;
+	ProcedureSystem procedureSystem;
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
 		this.packageName = packageName;
@@ -84,8 +84,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProgram(Program program, Object arg) throws PLPException {
-		ASTVisitor scopes = CompilerComponentFactory.getScopeVisitor();
-		program.visit(scopes, null);
+		ASTVisitor procedureNameVisitor = CompilerComponentFactory.getProcedureNameVisitor();
+		procedureSystem = new ProcedureSystem();
+		program.visit(procedureNameVisitor, procedureSystem);
 		MethodVisitor methodVisitor;
 		//create a classWriter and visit it
 		classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
