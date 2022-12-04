@@ -99,8 +99,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		for (ProcDec proc:program.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
-			classWriter.visitNestMember(currentFieldName+"$"+procName);
-			classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
+			// classWriter.visitNestMember(currentFieldName+"$"+procName);
+			// classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
 		}
 
 		//create init method code
@@ -579,12 +579,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+parentFieldName+";", null, null); 
 		fieldVisitor.visitEnd();
 		classWriter.visitSource(className+".java", null); 
-		classWriter.visitNestHost(parentFieldName);
+		// classWriter.visitNestHost(parentFieldName);
 		for (ProcDec proc:procDec.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
-			classWriter.visitNestMember(currentFieldName+"$"+procName);
-			classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
+			// classWriter.visitNestMember(currentFieldName+"$"+procName);
+			// classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
 		}
 		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>","(L"+parentFieldName+";)V", null, null);
 		methodVisitor.visitCode();
