@@ -128,12 +128,12 @@ public class ProcedureNameVisitor implements ASTVisitor{
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         ProcedureSystem procedureSystem = (ProcedureSystem)arg;
         String procName = String.valueOf(procDec.ident.getText());
-        String parentField = "";
+        String upperField = null;
         if (classList.size()>0) {
-            parentField = classList.get(classList.size()-1);
+            upperField = classList.get(classList.size()-1);
         }
 		classList.add(String.valueOf(procDec.ident.getText()));
-        procedureSystem.addProcedureInfo(procName, new ProcedureInfo(getCurrentField(), getParentField(), parentField, procDec));
+        procedureSystem.addProcedureInfo(procName, new ProcedureInfo(getCurrentField(), getParentField(), upperField, procDec));
         procDec.block.visit(this, arg);
         classList.remove(classList.size()-1);
         return null;

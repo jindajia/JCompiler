@@ -533,14 +533,22 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				
 			}
 			methodVisitor.visitVarInsn(ALOAD, 0);
-			String parentFieldName = fullyQualifiedClassName;
+			String currentFieldFullName;
+			String parentFieldFullName = null;
+			String parentName;
 			if (!currentClass.equals(className)){
-				String currentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).currentfieldName();
-				parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).parentFieldName();
-				int nest = procedureSystem.getProcedureInfo(currentClass).proc().getNest();
-				methodVisitor.visitFieldInsn(GETFIELD, currentFieldName, "this$"+nest, "L"+parentFieldName+";");
+				parentName = currentClass;
+				while(parentName!=null && procedureSystem.getProcedureInfo(parentName)!=null) {
+					currentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).currentfieldName();
+					parentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).parentFieldName();
+					int nest = procedureSystem.getProcedureInfo(parentName).proc().getNest();
+					methodVisitor.visitFieldInsn(GETFIELD, currentFieldFullName, "this$"+nest, "L"+parentFieldFullName+";");
+					parentName = procedureSystem.getProcedureInfo(parentName).upperField();
+				}
+				methodVisitor.visitFieldInsn(GETFIELD, parentFieldFullName, name, despt);
+			} else {
+				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName, name, despt);
 			}
-			methodVisitor.visitFieldInsn(GETFIELD, parentFieldName, name, despt);//TODO
 			methodVisitor.visitEnd();
 		} 
 		// else if (dec instanceof ProcDec) {
