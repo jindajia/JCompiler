@@ -171,23 +171,25 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		ClassWriter classWriter = (ClassWriter)arg;
 		FieldVisitor fieldVisitor; 
 		String name = String.valueOf(varDec.ident.getText());
-		switch(varDec.getType()) {
-			case BOOLEAN:
-				fieldVisitor = classWriter.visitField(0, name, "Z", null, null);
-				fieldVisitor.visitEnd(); 
-				break;
-			case NUMBER:
-				fieldVisitor = classWriter.visitField(0, name, "I", null, null);
-				fieldVisitor.visitEnd(); 
-				break;
-			case PROCEDURE:
-				break;
-			case STRING:
-				fieldVisitor = classWriter.visitField(0, name, "Ljava/lang/String;", null, null);
-				fieldVisitor.visitEnd(); 
-				break;
-			default:
-				break;
+		if (varDec.getType()!=null) {
+			switch(varDec.getType()) {
+				case BOOLEAN:
+					fieldVisitor = classWriter.visitField(0, name, "Z", null, null);
+					fieldVisitor.visitEnd(); 
+					break;
+				case NUMBER:
+					fieldVisitor = classWriter.visitField(0, name, "I", null, null);
+					fieldVisitor.visitEnd(); 
+					break;
+				case PROCEDURE:
+					break;
+				case STRING:
+					fieldVisitor = classWriter.visitField(0, name, "Ljava/lang/String;", null, null);
+					fieldVisitor.visitEnd(); 
+					break;
+				default:
+					break;
+			}
 		}
 		return null;
 	}
