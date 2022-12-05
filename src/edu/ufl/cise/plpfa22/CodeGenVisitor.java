@@ -94,7 +94,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// instead of ClassWriter.COMPUTE_FRAMES.  The result will not be a valid classfile,
 		// but you will be able to print it so you can see the instructions.  After fixing,
 		// restore ClassWriter.COMPUTE_FRAMES
-		String currentFieldName = getCurrentField();
+		String currentFieldName = getCurrentFieldFullName();
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, currentFieldName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
 		for (ProcDec proc:getAllProcedures(program.block)) {
@@ -208,6 +208,26 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+currentFieldName); 
 		methodVisitor.visitInsn(DUP);
 		methodVisitor.visitVarInsn(ALOAD,0);
+		String currentFieldFullName = getCurrentFieldFullName();
+		String parentFieldFullName = getParentFieldFullName();
+		String parentName;
+		int currentNest = 0;
+		int procNest = procedureSystem.getProcedureInfo(procName).proc().getNest();
+		if (procedureSystem.getProcedureInfo(className)!=null) {
+			currentNest = procedureSystem.getProcedureInfo(className).proc().getNest();
+		}
+		if (currentNest>=procNest){
+			parentName = currentClass;
+			while(currentNest>=procNest&&parentName!=null&&procedureSystem.getProcedureInfo(parentName)!=null) {
+				currentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).currentfieldName();
+				parentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).parentFieldName();
+				currentNest = procedureSystem.getProcedureInfo(parentName).proc().getNest();
+				methodVisitor.visitFieldInsn(GETFIELD, currentFieldFullName, "this$"+currentNest, "L"+parentFieldFullName+";");
+				parentName = procedureSystem.getProcedureInfo(parentName).upperField();
+			}
+		}
+		methodVisitor.visitEnd();
+
 		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+currentFieldName, "<init>","(L"+fullyQualifiedClassName+parentFieldName+";)V",false);
 		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+currentFieldName, "run", "()V", false);
 		return null;
@@ -720,18 +740,18 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		return resultList;
 	}
 
-	public String getParentField() {
+	public String getParentFieldFullName() {
 		String s = fullyQualifiedClassName;
-		for (int i=0;i<classList.size()-1;++i) {
-			s += "$"+classList.get(i);
+		if (procedureSystem.getProcedureInfo(className)!=null) {
+			s += procedureSystem.getProcedureInfo(className).parentFieldName();
 		}
 		return s;
 	}
 
-	public String getCurrentField() {
+	public String getCurrentFieldFullName() {
 		String s = fullyQualifiedClassName;
-		for (String field:classList) {
-			s += "$"+field;
+		if (procedureSystem.getProcedureInfo(className)!=null) {
+			s += procedureSystem.getProcedureInfo(className).currentfieldName();
 		}
 		return s;
 	}
