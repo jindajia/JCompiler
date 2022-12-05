@@ -151,10 +151,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		Declaration dec = statementAssign.ident.getDec();
 		if (dec instanceof VarDec){
 			if (!currentClass.equals(className)){
-				String currentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).currentfieldName();
-				String parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).parentFieldName();
-				int nest = procedureSystem.getProcedureInfo(currentClass).proc().getNest();
-				methodVisitor.visitFieldInsn(GETFIELD, currentFieldName, "this$"+nest, "L"+parentFieldName+";");
+				String parentName = currentClass;
+				while(procedureSystem.getProcedureInfo(parentName)!=null) {
+					String currentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).currentfieldName();
+					String parentFieldFullName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(parentName).parentFieldName();
+					int nest = procedureSystem.getProcedureInfo(parentName).proc().getNest();
+					methodVisitor.visitFieldInsn(GETFIELD, currentFieldFullName, "this$"+nest, "L"+parentFieldFullName+";");
+					parentName = procedureSystem.getProcedureInfo(parentName).upperField();
+				}
 			}
 		}
 		methodVisitor.visitInsn(SWAP);

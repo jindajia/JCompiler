@@ -6,7 +6,7 @@ import java.util.Map;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 
 public class ProcedureSystem {
-    public static record ProcedureInfo(String currentfieldName, String parentFieldName, ProcDec proc){
+    public static record ProcedureInfo(String currentfieldName, String parentFieldName, String upperField, ProcDec proc){
     }
     Map<String, ProcedureInfo> dataMap;
     public ProcedureSystem(){
