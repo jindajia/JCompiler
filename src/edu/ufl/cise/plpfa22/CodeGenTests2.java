@@ -4,6 +4,9 @@
 
 package edu.ufl.cise.plpfa22;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +14,8 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import edu.ufl.cise.plpfa22.CodeGenUtils.DynamicClassLoader;
 import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
@@ -634,6 +639,18 @@ public class CodeGenTests2 {
 		loadClassesAndRunMain(classes, className);		
 	}	
 	
+	@DisplayName("Show Java Bytecode")
+	@Test
+	public void showJavaByteCode() throws Exception{
+		try {
+			ClassReader reader = new ClassReader("edu.ufl.cise.plpfa22.ProgramTest$p$q");
+			StringWriter sw = new StringWriter();
+			TraceClassVisitor tcv = new TraceClassVisitor(new PrintWriter(System.out));
+			reader.accept(tcv, 0);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 
 }

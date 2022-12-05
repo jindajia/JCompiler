@@ -527,16 +527,17 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			}
 			methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName, name, despt);
 			methodVisitor.visitEnd();
-		} else if (dec instanceof ProcDec) {
-			ProcDec procDec = (ProcDec)dec;
-			String type = fullyQualifiedClassName+"$"+String.valueOf(procDec.ident.getText());
-			methodVisitor.visitTypeInsn(NEW, type); 
-			methodVisitor.visitInsn(DUP);
-			methodVisitor.visitVarInsn(ALOAD,0);
-			methodVisitor.visitMethodInsn(INVOKESPECIAL,type, "<init>", "(L"+fullyQualifiedClassName+";)V",false);
-			methodVisitor.visitMethodInsn(INVOKEVIRTUAL,type, "run", "()V", false);
-			methodVisitor.visitEnd();
-		}
+		} 
+		// else if (dec instanceof ProcDec) {
+		// 	ProcDec procDec = (ProcDec)dec;
+		// 	String type = fullyQualifiedClassName+"$"+String.valueOf(procDec.ident.getText());
+		// 	methodVisitor.visitTypeInsn(NEW, type); 
+		// 	methodVisitor.visitInsn(DUP);
+		// 	methodVisitor.visitVarInsn(ALOAD,0);
+		// 	methodVisitor.visitMethodInsn(INVOKESPECIAL,type, "<init>", "(L"+fullyQualifiedClassName+";)V",false);
+		// 	methodVisitor.visitMethodInsn(INVOKEVIRTUAL,type, "run", "()V", false);
+		// 	methodVisitor.visitEnd();
+		// }
 		return null;
 	}
 
@@ -575,8 +576,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		classList.add(currentClass);
 		classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		String procedureName = String.valueOf(procDec.ident.getText());
-		String parentFieldName = getParentField();
-		String currentFieldName = getCurrentField();
+		String currentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procedureName).currentfieldName();
+		String parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procedureName).parentFieldName();
 		classWriter.visit(V18, ACC_SUPER, currentFieldName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 		
 		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+parentFieldName+";", null, null); 
@@ -593,7 +594,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitCode();
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		methodVisitor.visitVarInsn(ALOAD, 1);
-		methodVisitor.visitFieldInsn(PUTFIELD, parentFieldName+"$"+procedureName, "this$"+procDec.getNest(), "L"+parentFieldName+";");
+		methodVisitor.visitFieldInsn(PUTFIELD, currentFieldName, "this$"+procDec.getNest(), "L"+parentFieldName+";");
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 		methodVisitor.visitInsn(RETURN);
