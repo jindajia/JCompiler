@@ -129,7 +129,7 @@ public class ProcedureNameVisitor implements ASTVisitor{
         ProcedureSystem procedureSystem = (ProcedureSystem)arg;
         String procName = String.valueOf(procDec.ident.getText());
 		classList.add(String.valueOf(procDec.ident.getText()));
-        procedureSystem.addProcedureInfo(procName, new ProcedureInfo(getCurrentField(), getParentField()));
+        procedureSystem.addProcedureInfo(procName, new ProcedureInfo(getCurrentField(), getParentField(), procDec));
         procDec.block.visit(this, arg);
         classList.remove(classList.size()-1);
         return null;

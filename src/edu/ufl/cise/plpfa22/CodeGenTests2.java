@@ -643,7 +643,7 @@ public class CodeGenTests2 {
 	@Test
 	public void showJavaByteCode() throws Exception{
 		try {
-			ClassReader reader = new ClassReader("edu.ufl.cise.plpfa22.ProgramTest$p$q");
+			ClassReader reader = new ClassReader("edu.ufl.cise.plpfa22.ProgramTest");
 			StringWriter sw = new StringWriter();
 			TraceClassVisitor tcv = new TraceClassVisitor(new PrintWriter(System.out));
 			reader.accept(tcv, 0);

@@ -97,11 +97,18 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		String currentFieldName = getCurrentField();
 		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, currentFieldName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
+		for (ProcDec proc:getAllProcedures(program.block)) {
+			String procName = String.valueOf(proc.ident.getText());
+			classWriter.visitSource(className+".java", null);
+			String procFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procName).currentfieldName();
+			String parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procName).parentFieldName();
+			classWriter.visitNestMember(fullyQualifiedClassName+procFieldName);
+		}
 		for (ProcDec proc:program.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
-			classWriter.visitSource(className+".java", null); 
-			// classWriter.visitNestMember(currentFieldName+"$"+procName);
-			// classWriter.visitInnerClass(currentFieldName+"$"+procName, currentFieldName, procName, 0);
+			String procFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procName).currentfieldName();
+			String parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(procName).parentFieldName();
+			classWriter.visitInnerClass(fullyQualifiedClassName+procFieldName, fullyQualifiedClassName+parentFieldName, procName, 0);
 		}
 
 		//create init method code
@@ -143,10 +150,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitVarInsn(ALOAD, 0);
 		Declaration dec = statementAssign.ident.getDec();
 		if (dec instanceof VarDec){
-			VarDec varDec = (VarDec)dec;
-			int nest = varDec.getNest();
 			if (!currentClass.equals(className)){
-				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this$"+nest, "L"+fullyQualifiedClassName+";");
+				String currentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).currentfieldName();
+				String parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).parentFieldName();
+				int nest = procedureSystem.getProcedureInfo(currentClass).proc().getNest();
+				methodVisitor.visitFieldInsn(GETFIELD, currentFieldName, "this$"+nest, "L"+parentFieldName+";");
 			}
 		}
 		methodVisitor.visitInsn(SWAP);
@@ -521,11 +529,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				
 			}
 			methodVisitor.visitVarInsn(ALOAD, 0);
-			int nest = varDec.getNest();
+			String parentFieldName = fullyQualifiedClassName;
 			if (!currentClass.equals(className)){
-				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$"+currentClass, "this$"+nest, "L"+fullyQualifiedClassName+";");
+				String currentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).currentfieldName();
+				parentFieldName = fullyQualifiedClassName+procedureSystem.getProcedureInfo(currentClass).parentFieldName();
+				int nest = procedureSystem.getProcedureInfo(currentClass).proc().getNest();
+				methodVisitor.visitFieldInsn(GETFIELD, currentFieldName, "this$"+nest, "L"+parentFieldName+";");
 			}
-			methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName, name, despt);
+			methodVisitor.visitFieldInsn(GETFIELD, parentFieldName, name, despt);//TODO
 			methodVisitor.visitEnd();
 		} 
 		// else if (dec instanceof ProcDec) {
@@ -583,7 +594,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$"+procDec.getNest(), "L"+parentFieldName+";", null, null); 
 		fieldVisitor.visitEnd();
 		classWriter.visitSource(className+".java", null); 
-		// classWriter.visitNestHost(parentFieldName);
+		classWriter.visitNestHost(fullyQualifiedClassName);
 		for (ProcDec proc:procDec.block.procedureDecs) {
 			String procName = String.valueOf(proc.ident.getText());
 			classWriter.visitSource(className+".java", null); 
