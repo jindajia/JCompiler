@@ -272,7 +272,17 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		statementWhile.expression.visit(this, arg);
+		Label label0 = new Label();
+		Label label1 = new Label();
+		mv.visitJumpInsn(GOTO, label0);
+		mv.visitLabel(label1);
+		statementWhile.statement.visit(this, arg);
+		statementWhile.expression.visit(this, arg);
+		mv.visitLabel(label0);
+		mv.visitJumpInsn(IFNE, label1);
+		return null;
 	}
 
 	@Override
