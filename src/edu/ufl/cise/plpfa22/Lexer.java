@@ -52,14 +52,14 @@ public class Lexer implements ILexer{
         return this.INPUT.substring(start_pos, current_pos);
     }
     public static boolean isReserved(String str) {
-        if (KWLIST.contains(str.toUpperCase()) || BOOLLIST.contains(str.toUpperCase())) {
+        if (KWLIST.contains(str) || BOOLLIST.contains(str)) {
             return true;
         }
         return false;
     }
     public static Kind reservedKind(String str) throws LexicalException{
-        if (KWLIST.contains(str.toUpperCase())) {
-            int index = KWLIST.indexOf(str.toUpperCase());
+        if (KWLIST.contains(str)) {
+            int index = KWLIST.indexOf(str);
             switch(index) {
                 case 0:
                     return Kind.KW_CONST;
