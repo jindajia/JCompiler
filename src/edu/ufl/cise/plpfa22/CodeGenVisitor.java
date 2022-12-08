@@ -178,7 +178,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					fieldVisitor.visitEnd(); 
 					break;
 				case NUMBER:
-					fieldVisitor = classWriter.visitField(0, name, "I", null, null);
+					fieldVisitor = classWriter.visitField(0, name, "I", null, 0);
 					fieldVisitor.visitEnd(); 
 					break;
 				case PROCEDURE:
