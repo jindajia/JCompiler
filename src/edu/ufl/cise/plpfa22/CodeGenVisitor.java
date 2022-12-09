@@ -569,6 +569,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				}
 				methodVisitor.visitFieldInsn(GETFIELD, currentFieldFullName, "this$"+identNest, "L"+parentFieldFullName+";");
 			}
+			parentFieldFullName = fullyQualifiedClassName ;
+			Declaration parDec = procedureSystem.getProcedureInfo(varDec).parentDec();
+			if (parDec!=null) {
+				parentFieldFullName += procedureSystem.getProcedureInfo(parDec).fieldName();
+			}
 			methodVisitor.visitFieldInsn(GETFIELD, parentFieldFullName, name, despt);
 			methodVisitor.visitEnd();
 		} 
@@ -712,12 +717,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					break;
 				
 			}
-			if (nest>0) {
-				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName+"$"+name,"this$"+nest, "L"+fullyQualifiedClassName+";");
-			} else {
-
-				methodVisitor.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, name, type);
+			String parentFieldFullName = fullyQualifiedClassName;
+			Declaration parDec = procedureSystem.getProcedureInfo(varDec).parentDec();
+			if (parDec!=null) {
+				parentFieldFullName += procedureSystem.getProcedureInfo(parDec).fieldName();
 			}
+			methodVisitor.visitFieldInsn(PUTFIELD, parentFieldFullName, name, type);
 		}
 		return null;
 	}
