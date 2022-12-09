@@ -29,11 +29,15 @@ import edu.ufl.cise.plpfa22.ast.VarDec;
 public class ProcedureNameVisitor implements ASTVisitor{
 
     List<String> classList;
+    ProcDec currentProc;
     public ProcedureNameVisitor(){
         classList = new LinkedList<>();
     }
     @Override
     public Object visitBlock(Block block, Object arg) throws PLPException {
+        for (VarDec varDec:block.varDecs) {
+            varDec.visit(this, arg);
+        }
         for (ProcDec procDec:block.procedureDecs) {
             procDec.visit(this, arg);
         }
@@ -54,7 +58,9 @@ public class ProcedureNameVisitor implements ASTVisitor{
 
     @Override
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
+        ProcedureSystem procedureSystem = (ProcedureSystem)arg;
+        String varName = String.valueOf(varDec.ident.getText());
+        procedureSystem.addProcedureInfo(varDec, new ProcedureInfo(getCurrentField()+"$"+varName, currentProc));
         return null;
     }
 
@@ -132,9 +138,12 @@ public class ProcedureNameVisitor implements ASTVisitor{
         if (classList.size()>0) {
             upperField = classList.get(classList.size()-1);
         }
-		classList.add(String.valueOf(procDec.ident.getText()));
-        procedureSystem.addProcedureInfo(procName, new ProcedureInfo(getCurrentField(), getParentField(), upperField, procDec));
+        procedureSystem.addProcedureInfo(procDec, new ProcedureInfo(getCurrentField()+"$"+procName, currentProc));
+        classList.add(String.valueOf(procDec.ident.getText()));
+        ProcDec lastProcDec = currentProc;
+        currentProc = procDec;
         procDec.block.visit(this, arg);
+        currentProc = lastProcDec;
         classList.remove(classList.size()-1);
         return null;
     }

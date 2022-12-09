@@ -96,20 +96,6 @@ public class CodeGenTests2 {
 	void show(GenClass genClass) {
 		show(genClass.className());
 		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
-			show(genClass.byteCode());		
-		show(genClass.byteCode());
 	}
 
 	void show(List<GenClass> classes) {
