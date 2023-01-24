@@ -1,21 +1,9 @@
-## Getting Started
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+# JCompolier
+JCompiler is a compiler developed by Java, which handles the following syntax structure. To increase JCompiler's cross-platform capabilities, it borrows from the JVM and ASM to compile the code as .class files.\
+[Lexical Structure](https://docs.google.com/document/d/e/2PACX-1vQkcCcgs0RHqyYil4ybxeUAK14aWVBMjkJfyICYjGyCM-Hm1XI602WKuiHCtU1itNO6tXC0vgTb3jnw/pub)\
+[Phrase Structure](https://docs.google.com/document/d/1nuv45jnBOFuhBAV2PWLCNBURWSlmTsPKkfy--kZedDA/edit?usp=sharing)
 
-## Folder Structure
-
-The workspace contains two folders by default, where:
-
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
 
 ## Code Outline
 
@@ -28,7 +16,7 @@ Class: Lexer, Token
 FactoryClass: CompilerComponentFactory
 ```
 ### 2. Parsing and AST Generation
-[Phrase Structure](https://docs.google.com/document/d/1nuv45jnBOFuhBAV2PWLCNBURWSlmTsPKkfy--kZedDA/edit?usp=sharing)
+
 Parser will return a Abstract Syntax Tree(AST) for future using. Using Visitor Pattern to visit AST.
 ```
 The grammar is LL(1), so I used a top down parsing.
